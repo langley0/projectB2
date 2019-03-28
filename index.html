@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Traviso.js - Example 1 - Basic World</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #000000;
+            }
+        </style>
+        
+        <script src="/js/pixi/pixi.js"></script>
+        <script src="/js/traviso/traviso.js"></script>
+        <script src="/js/traviso/Calculations.js"></script>
+        <script src="/js/traviso/MapMethods.js"></script>
+        <script src="/js/traviso/EngineView.js"></script>
+        <script src="/js/traviso/PathFinding.js"></script>
+        <script src="/js/traviso/MoveEngine.js"></script>
+        <script src="/js/traviso/Map/TileView.js"></script>
+        <script src="/js/traviso/Map/ObjectView.js"></script>
+    </head>
+    <body>
+        <script>
+
+                ////// Here, we initialize the pixi application
+                var pixiRoot = new PIXI.Application(800, 600, { backgroundColor : 0x6BACDE });
+
+                // add the renderer view element to the DOM
+                document.body.appendChild(pixiRoot.view);
+                
+                ////// Here, we create our traviso instance and add on top of pixi
+                
+                // engine-instance configuration object
+                /*
+
+                var engine = TRAVISO.getEngineInstance(instanceConfig);
+                pixiRoot.stage.addChild(engine);*/
+
+                var instanceConfig = {
+                    tileHeight: 16,
+                    tileWidth: 32,
+                    mapDataPath: "mapData.json", // the path to the json file that defines map data, required
+                    assetsToLoad: ["/assets/assets_map.json", "/assets/assets_characters.json"] // array of paths to the assets that are desired to be loaded by traviso, no need to use if assets are already loaded to PIXI cache, default null
+                };
+
+                TRAVISO.init();
+                var engine = new TRAVISO.EngineView(instanceConfig);
+                //engine.scale.x = 2;
+                //engine.scale.y = 2;
+
+                var loader = new PIXI.loaders.Loader();
+                loader.add("mapData", instanceConfig.mapDataPath);
+
+
+                // 텍스쳐를 임의로 만들어서 넣는다
+                loader.add("tiles.json", "/assets/mapdata/tiles.json",);
+                loader.add("tiles.png", "/assets/mapdata/tiles.png",);
+                loader.add("objects.json", "/assets/mapdata/objects.json",);
+                loader.add("objects.png", "/assets/mapdata/objects.png",);
+                loader.add("walls.json", "/assets/mapdata/walls.json",);
+                loader.add("walls.png", "/assets/mapdata/walls.png",);
+                loader.add("map.json", "/assets/mapdata/map.json",);
+
+
+                loader.add(instanceConfig.assetsToLoad);
+                
+                loader.load(function (loader, resources) { 
+                    const mapData = resources["mapData"].data;
+                    const tiles = resources["tiles.json"].data
+                    const objects = resources["objects.json"].data
+                    const walls = resources["walls.json"].data
+
+                    const newMap = resources["map.json"].data
+                    const tilebase = new PIXI.BaseTexture(resources["tiles.png"].data);
+                    const objectbase = new PIXI.BaseTexture(resources["objects.png"].data);
+                    const wallbase = new PIXI.BaseTexture(resources["walls.png"].data);
+
+                    for (let i = 0; i < tiles.tilecount; ++i) {
+                        const x = i % tiles.columns;
+                        const y = Math.floor(i / tiles.columns);
+                        const texture = new PIXI.Texture(tilebase, new PIXI.Rectangle (x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight));
+
+                        const textureName = "tiles_" + i + ".png";
+                        PIXI.Texture.addToCache(texture, textureName);
+                        mapData.tiles[i+1] = { 
+                            movable: true,
+                            path: textureName };
+                    }
+
+                    for (let i = 0; i < objects.tilecount; ++i) {
+                        const x = i % objects.columns;
+                        const y = Math.floor(i / objects.columns);
+                        const texture = new PIXI.Texture(objectbase, new PIXI.Rectangle (x * objects.tilewidth, y * objects.tileheight, objects.tilewidth, objects.tileheight));
+                        const textureName = "objects_" + i + ".png";
+                        PIXI.Texture.addToCache(texture, textureName);
+                        mapData.objects[i+65] = { 
+                            movable: false, 
+                            interactive: false, 
+                            rowSpan: 1, 
+                            columnSpan: 1, 
+                            noTransparency: false, 
+                            floor: false, 
+                            visuals: { idle: { frames: [ { path: textureName } ] } }
+                        };
+                    }
+
+                    for (let i = 0; i < walls.tilecount; ++i) {
+                        const x = i % walls.columns;
+                        const y = Math.floor(i / walls.columns);
+                        const texture = new PIXI.Texture(wallbase, new PIXI.Rectangle (x * walls.tilewidth, y * walls.tileheight, walls.tilewidth, walls.tileheight));
+                        const textureName = "walls_" + i + ".png";
+                        PIXI.Texture.addToCache(texture, textureName);
+                        mapData.objects[i+73] = { 
+                            movable: false, 
+                            interactive: false, 
+                            rowSpan: 1, 
+                            columnSpan: 1, 
+                            noTransparency: false, 
+                            floor: false, 
+                            visuals: { idle: { frames: [ { path: textureName } ] } }
+                        };
+                    }
+
+
+
+
+                    const groundLayer = newMap.layers[0];
+                    mapData.groundMap = [];
+                    for (let y = 0; y < groundLayer.height;++y) {
+                        const row = [];
+                        for (let x = 0; x < groundLayer.width;++x) {
+                            // -90도 돌려준다
+                            const index =  y  + (groundLayer.width - x - 1)*  groundLayer.width;
+                            row.push(groundLayer.data[index]);
+                        }
+                        mapData.groundMap.push({ row: row.join(',') });
+                    }
+
+                    const objectsLayer = newMap.layers[1];
+                    mapData.objectsMap = [];
+                    for (let y = 0; y < groundLayer.height;++y) {
+                        const row = [];
+                        for (let x = 0; x < groundLayer.width;++x) {
+                            // -90도 돌려준다
+                            const index =  y + (groundLayer.width - x -1)* groundLayer.width;
+                            row.push(objectsLayer ? objectsLayer.data[index] : 0);
+                        }
+                        mapData.objectsMap.push({ row: row.join(',') });
+                    }
+
+
+                    TRAVISO.assetsAndDataLoaded(engine, engine.onAllAssetsLoaded.bind(engine), resources); 
+                    pixiRoot.stage.addChild(engine);
+                });
+
+        </script>
+    </body>
+</html>

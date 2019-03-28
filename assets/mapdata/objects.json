@@ -1,0 +1,15 @@
+{ "columns":4,
+ "image":"Image Asset\/Converted\/objects.png",
+ "imageheight":128,
+ "imagewidth":128,
+ "margin":0,
+ "name":"objects",
+ "spacing":0,
+ "tilecount":8,
+ "tiledversion":"1.2.3",
+ "tileheight":48,
+ "tilewidth":32,
+ "transparentcolor":"#ff00ff",
+ "type":"tileset",
+ "version":1.2
+}
