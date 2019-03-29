@@ -418,6 +418,9 @@ TRAVISO.MoveEngine.prototype.getEasingFunc = function (e)
     {
         return this.easeOutQuad;
     }
+    else if (e === "easeOut_ex") {
+        return this.easeOutQuad_ex;
+    }
     else
     {
         return this.linearTween;
@@ -466,6 +469,11 @@ TRAVISO.MoveEngine.prototype.easeInQuad = function (t, b, c, d) {
 TRAVISO.MoveEngine.prototype.easeOutQuad = function (t, b, c, d) {
     t /= d;
     return -c * t*(t-2) + b;
+};
+
+TRAVISO.MoveEngine.prototype.easeOutQuad_ex = function (t, b, c, d) {
+    t /= d;
+    return Math.floor(-c * t*(t-2) + b);
 };
 /**
  * Quadratic ease-in-out tween calculation.

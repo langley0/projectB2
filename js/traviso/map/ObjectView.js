@@ -70,11 +70,11 @@ TRAVISO.ObjectView = function(engine, objectType, animSpeed)
     this.interactionOffsets = info.io;
     
     this.currentInteractionOffset = this.interactionOffsets.idle;
-	
+
     this.container = new PIXI.extras.AnimatedSprite(this.textures.idle);
     this.container.interactive = this.container.interactiveChildren = false;
     this.container.anchor.x = 0.5;
-    this.container.anchor.y = 1;
+    this.container.anchor.y = 1; //(this.textures.idle[0].height - this.engine.TILE_HALF_H) / this.textures.idle[0].height;
     this.addChild(this.container);
     this.animSpeed = animSpeed;
     this.container.gotoAndStop(0);

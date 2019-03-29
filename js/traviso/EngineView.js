@@ -1392,7 +1392,7 @@ TRAVISO.EngineView.prototype.checkForFollowCharacter = function(obj)
     	var px = this.externalCenter.x - obj.position.x * this.currentScale;
     	var py = this.externalCenter.y - obj.position.y * this.currentScale;
         // this.centralizeToPoint(px, py, true);
-        this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut", true );
+        this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
     }
 };
 

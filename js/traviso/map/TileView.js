@@ -54,12 +54,11 @@ TRAVISO.TileView = function(engine, tileType)
 
     if (tileInfo.t.length > 0)
     {
-        console.log(tileInfo.t);
-        this.tileGraphics = new PIXI.extras.AnimatedSprite(tileInfo.t);
+        this.tileGraphics = new PIXI.Sprite(tileInfo.t[0]);
         this.tileGraphics.anchor.x = 0.5;
-        this.tileGraphics.anchor.y = 1;
+        this.tileGraphics.anchor.y = 1; //(tileInfo.t[0].height - halfHeight) / tileInfo.t[0].height;
         this.addChild(this.tileGraphics);
-        this.tileGraphics.gotoAndStop(this.type);
+        //this.tileGraphics.gotoAndStop(this.type);
     }
 
     // var colorsArray = [0x0106ff, 0x3b6d14, 0x8789ff, 0xb32bf9, 0xeb36d0, 0xfe0000, 0xeb3647, 0xf27e31, 0xffea01, 0x00ff18, 0x3b6d14, 0xfa9bbb, 0xf9c7bc, 0x8d6729, 0x633e07];
@@ -83,7 +82,7 @@ TRAVISO.TileView = function(engine, tileType)
     if (this.engine.mapData.tileHighlightImage) {
         this.highlightedOverlay = new PIXI.Sprite.fromFrame(this.engine.mapData.tileHighlightImage.path);
         this.highlightedOverlay.anchor.x = 0.5;
-        this.highlightedOverlay.anchor.y = 0.5;
+        this.highlightedOverlay.anchor.y = 1;
         this.addChild(this.highlightedOverlay);
     }
     else
