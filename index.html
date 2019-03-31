@@ -12,6 +12,7 @@
         
         <script src="/js/pixi/pixi.js"></script>
         <script src="/js/isoengine/engine.js"></script>
+        <script src="/js/isoengine/moveengine.js"></script>
     </head>
     <body>
         <script>
@@ -101,13 +102,11 @@
                 
                     map2.build();
                     pixiRoot.stage.addChild(map2);
-                    pixiRoot.stage.x = 200;
-                    pixiRoot.stage.y = 250;
-
+                  
                     // 캐릭터를 추가한다
                     const character = new Engine.Character();
                     character.id = 1;
-                    map2.addCharacter(character, 5, 5);
+                    map2.addCharacter(character, 4, 4);
 
                     map2.onTileSelected = (x, y) => {
                         // 캐릭터를 옮긴다

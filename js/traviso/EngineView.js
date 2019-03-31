@@ -1202,7 +1202,7 @@ TRAVISO.EngineView.prototype.arrangePathHighlight = function(currentPath, newPat
             if (!newPath || newPath.indexOf(pathItem) === -1)
             {
                 tile = this.tileArray[pathItem.mapPos.r][pathItem.mapPos.c];
-                tile.setHighlighted(false, !this.config.tileHighlightAnimated);
+                tile.setHighlighted(false);
             }
         }
     }
@@ -1214,10 +1214,10 @@ TRAVISO.EngineView.prototype.arrangePathHighlight = function(currentPath, newPat
             if (!currentPath || currentPath.indexOf(pathItem) === -1)
             {
                 tile = this.tileArray[pathItem.mapPos.r][pathItem.mapPos.c];
-                tile.setHighlighted(true, !this.config.tileHighlightAnimated);
+                tile.setHighlighted(true);
             }
         }
-    }
+    }   
 };
 
 /**
@@ -1227,7 +1227,7 @@ TRAVISO.EngineView.prototype.arrangePathHighlight = function(currentPath, newPat
  * @private
  * @param obj {ObjectView} map-object to be moved on path
  */
-TRAVISO.EngineView.prototype.stopObject = function(obj) 
+TRAVISO.EngineView.prototype.f = function(obj) 
 {
     obj.currentPath = null;
     obj.currentTarget = null;
