@@ -22,23 +22,23 @@
                 var loader = new PIXI.loaders.Loader();
                 
                 // 텍스쳐를 임의로 만들어서 넣는다
-                loader.add("tiles.json", "/assets/mapdata/tiles.json",);
-                loader.add("tiles.png", "/assets/mapdata/tiles.png",);
-                loader.add("objects.json", "/assets/mapdata/objects.json",);
-                loader.add("objects.png", "/assets/mapdata/objects.png",);
-                loader.add("walls.json", "/assets/mapdata/walls.json",);
-                loader.add("walls.png", "/assets/mapdata/walls.png",);
-                loader.add("map.json", "/assets/mapdata/map.json",);
+                loader.add("tiles.json", "assets/mapdata/tiles.json",);
+                loader.add("tiles.png", "assets/mapdata/tiles.png",);
+                loader.add("objects.json", "assets/mapdata/objects.json",);
+                loader.add("objects.png", "assets/mapdata/objects.png",);
+                loader.add("walls.json", "assets/mapdata/walls.json",);
+                loader.add("walls.png", "assets/mapdata/walls.png",);
+                loader.add("map.json", "assets/mapdata/map.json",);
 
                 // 캐릭터 애니메이션
-                loader.add("/assets/night/atk_left.json");
-                loader.add("/assets/night/atk_up.json");
-                loader.add("/assets/night/idle.json");
-                loader.add("/assets/night/idle_up.json");
-                loader.add("/assets/night/walk_down.json");
-                loader.add("/assets/night/walk_up.json");
+                loader.add("assets/night/atk_left.json");
+                loader.add("assets/night/atk_up.json");
+                loader.add("assets/night/idle.json");
+                loader.add("assets/night/idle_up.json");
+                loader.add("assets/night/walk_down.json");
+                loader.add("assets/night/walk_up.json");
 
-                loader.add("shadow.png", "/assets/shadow.png");
+                loader.add("shadow.png", "assets/shadow.png");
 
                 
                 loader.load(function (loader, resources) { 
