@@ -292,17 +292,29 @@ class IsoMap extends PIXI.Container {
 
     moveCharacter(character, x, y) {
         // 길을 찾는다
-        const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
-        if (path) {
-            
-            this.moveObjThrough(character, path);
-            
+        if (character.isMoving) {
+            // 다음 위치에서부터 시작을 한다
+            const startX = character.currentTargetTile ? character.currentTargetTile.x : character.gridX;
+            const startY = character.currentTargetTile ? character.currentTargetTile.y : character.gridY;
+
+            const path  = this.pathFinder.solve(startX, startY, x, y);
+            character.newPath = path;
+        } else {
+            const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
+            if (path) {
+                this.moveObjThrough(character, path);
+            }
         }
     }
 
     moveObjThrough(obj, path) {
         if (obj.currentTarget) {
             this.stopObject(obj);
+        }
+
+        if (obj.newPath) {
+            path = obj.newPath;
+            obj.newPath = undefined;
         }
 
         const isControlCharacter = true;
@@ -409,9 +421,8 @@ class IsoMap extends PIXI.Container {
     }
 
     checkForFollowCharacter(obj) {
-        if (this.currentControllable === obj)
-        {
-            this.currentFocusLocation = { c: obj.mapPos.c, r: obj.mapPos.r };
+        if (true) {
+            this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
             const px = this.externalCenter.x - obj.position.x * this.currentScale;
             const py = this.externalCenter.y - obj.position.y * this.currentScale;
             this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
