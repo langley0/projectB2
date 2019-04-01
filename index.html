@@ -40,6 +40,8 @@
 
                 loader.add("shadow.png", "assets/shadow.png");
 
+                loader.add("windowlight.png", "assets/windowlight.png");
+
                 
                 loader.load(function (loader, resources) { 
                  
@@ -112,6 +114,33 @@
                         // 캐릭터를 옮긴다
                         map2.moveCharacter(character, x, y);
                     };
+
+                    // 라이팅 이펙트를 추가해보자
+                    {
+                        var tilingSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("windowlight.png"), 150, 164);
+                        tilingSprite.alpha = 0.7;
+                        tilingSprite.position.y -= 150;
+                        tilingSprite.position.x += 164;
+                        tilingSprite.blendMode = PIXI.BLEND_MODES.ADD;
+                        
+
+                        
+            
+                        const graphics = new PIXI.Graphics();
+                        graphics.beginFill(0);
+                        graphics.moveTo(150,0);
+                        graphics.lineTo(150, 32);
+                        graphics.lineTo(0,148);
+                        graphics.lineTo(0, 64);
+                        graphics.lineTo(150, 0);
+                        graphics.endFill();
+
+                        tilingSprite.mask = graphics;
+                        tilingSprite.addChild(graphics);
+
+                        map2.mapContainer.addChild(tilingSprite);
+                        
+                    }
 
                 });
 
