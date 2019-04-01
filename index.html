@@ -13,6 +13,12 @@
         <script src="js/pixi/pixi.js"></script>
         <script src="js/isoengine/engine.js"></script>
         <script src="js/isoengine/moveengine.js"></script>
+        <script src="js/isoengine/bloom.js"></script>
+        <script src="js/isoengine/battle.js"></script>
+        <script src="js/isoengine/movieclip.js"></script>
+        <style>
+        </style>
+      
     </head>
     <body>
         <script>
@@ -52,37 +58,39 @@
                     const walls = resources["walls.json"].data
 
                     const newMap = resources["map.json"].data
-                    const tilebase = new PIXI.BaseTexture(resources["tiles.png"].data);
-                    const objectbase = new PIXI.BaseTexture(resources["objects.png"].data);
-                    const wallbase = new PIXI.BaseTexture(resources["walls.png"].data);
 
-                    for (let i = 0; i < tiles.tilecount; ++i) {
-                        const x = i % tiles.columns;
-                        const y = Math.floor(i / tiles.columns);
-                        const texture = new PIXI.Texture(tilebase, new PIXI.Rectangle (x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight));
+                    const tiledata = [
+                        { data: tiles,  image: resources["tiles.png"].data, prefix: "tiles_", idStart: 1 },
+                        { data: objects,  image: resources["objects.png"].data, prefix: "objects_", idStart: 273 },
+                        { data: walls,  image: resources["walls.png"].data, prefix: "walls_", idStart: 257 },
+                    ];
 
-                        const textureName = "tiles_" + i + ".png";
-                        PIXI.Texture.addToCache(texture, textureName);
-                        map2.addTile(i+1, textureName);
+                    for (const _t of tiledata) {
+                        const tiles = _t.data;
+                        const image = _t.image;
+                        const prefix = _t.prefix;
+                        const idStart = _t.idStart;
+
+                        for (let i = 0; i < tiles.tilecount; ++i) {
+                            const x = i % tiles.columns;
+                            const y = Math.floor(i / tiles.columns);
+                            const c = document.createElement('canvas');
+                            c.width = tiles.tilewidth + 2; 
+                            c.height = tiles.tileheight + 2;
+                            const context = c.getContext('2d');
+                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 0, tiles.tilewidth, tiles.tileheight);
+                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 2, tiles.tilewidth, tiles.tileheight);
+                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 0, 1, tiles.tilewidth, tiles.tileheight);
+                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 2, 1, tiles.tilewidth, tiles.tileheight);
+                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 1, tiles.tilewidth, tiles.tileheight);
+                            const texture = PIXI.Texture.fromCanvas(c, new PIXI.Rectangle (1, 1, tiles.tilewidth, tiles.tileheight));
+
+                            const textureName = prefix + i + ".png";
+                            PIXI.Texture.addToCache(texture, textureName);
+                            map2.addTile(i+idStart, textureName);
+                        }
                     }
 
-                    for (let i = 0; i < objects.tilecount; ++i) {
-                        const x = i % objects.columns;
-                        const y = Math.floor(i / objects.columns);
-                        const texture = new PIXI.Texture(objectbase, new PIXI.Rectangle (x * objects.tilewidth, y * objects.tileheight, objects.tilewidth, objects.tileheight));
-                        const textureName = "objects_" + i + ".png";
-                        PIXI.Texture.addToCache(texture, textureName);
-                        map2.addTile(i+273, textureName);
-                    }
-
-                    for (let i = 0; i < walls.tilecount; ++i) {
-                        const x = i % walls.columns;
-                        const y = Math.floor(i / walls.columns);
-                        const texture = new PIXI.Texture(wallbase, new PIXI.Rectangle (x * walls.tilewidth, y * walls.tileheight, walls.tilewidth, walls.tileheight));
-                        const textureName = "walls_" + i + ".png";
-                        PIXI.Texture.addToCache(texture, textureName);
-                        map2.addTile(i+257, textureName);
-                    }
 
                     const groundLayer = newMap.layers[0];
                     for (let y = 0; y < groundLayer.height;++y) {
@@ -107,7 +115,6 @@
                   
                     // 캐릭터를 추가한다
                     const character = new Engine.Character();
-                    character.id = 1;
                     map2.addCharacter(character, 4, 4);
 
                     map2.onTileSelected = (x, y) => {
@@ -117,8 +124,14 @@
 
                     // 라이팅 이펙트를 추가해보자
                     {
-                        var tilingSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("windowlight.png"), 150, 164);
-                        tilingSprite.alpha = 0.7;
+                        /*var bcover = new PIXI.extras.TilingSprite(PIXI.Texture.WHITE, 800, 600);
+                        bcover.tint = 0;
+                        bcover.alpha = 0.5;
+                        bcover.position.y -= 300;
+                        map2.mapContainer.addChild(bcover);
+
+                        var tilingSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("windowlight.png"));
+                        tilingSprite.alpha = 1;
                         tilingSprite.position.y -= 150;
                         tilingSprite.position.x += 164;
                         tilingSprite.blendMode = PIXI.BLEND_MODES.ADD;
@@ -139,9 +152,26 @@
                         tilingSprite.addChild(graphics);
 
                         map2.mapContainer.addChild(tilingSprite);
-                        
-                    }
 
+                        // 블룸효과
+                        //pixiRoot.stage.filters = [new AdvancedBloomFilter()];
+                        const bloom = new AdvancedBloomFilter();*/
+                       
+                        window.addEventListener("keydown", (e) => {
+                            if (e.keyCode === 66) {
+                                if (pixiRoot.stage.filters) {
+                                    pixiRoot.stage.filters = null;
+                                } else {
+                                    pixiRoot.stage.filters = [bloom];
+                                }
+                            } else if (e.keyCode  === 67) {
+                                // 배틀씬 추가
+                                const battle = new Battle(map2, character);
+                                battle.prepare();
+                                setTimeout(battle.start.bind(battle), 3000);
+                            }
+                        }, true);
+                    }
                 });
 
         </script>

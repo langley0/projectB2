@@ -46,6 +46,14 @@ function isInPolygon(gp, vertices) {
 	return c;
 };
 
+function mathMap(v, min1, max1, min2, max2, noOutliers) {
+    if (noOutliers) {
+        if (v < min1) { return min2; }
+        else if (v > max1) { return max2; }
+    }
+    return min2 + (max2 - min2) * (v - min1) / (max1 - min1);
+};
+
 Engine.DIRECTIONS = DIRECTIONS;
 
 const TILE_WIDTH  = 32;
@@ -149,8 +157,35 @@ class IsoMap extends PIXI.Container {
             y : this.posFrame.h >> 1
         };
 
+        this.mapVisualWidthReal = this.getTilePosXFor(this.mapWidth - 1,this.mapHeight - 1) - this.getTilePosXFor(0,0);
+	    this.mapVisualHeightReal = this.getTilePosYFor(this.mapWidth - 1,0) - this.getTilePosYFor(0,this.mapHeight - 1);
+
         this.currentFocusLocation = { x: this.mapWidth >> 1, y: this.mapHeight >> 1 };
 		this.centralizeToPoint(this.externalCenter.x, this.externalCenter.y, true);
+    }
+
+    zoomTo(scale, instantZoom) {
+        
+        this.externalCenter = this.externalCenter ? this.externalCenter : { x: (this.mapVisualWidthScaled >> 1), y: 0 };
+        const diff = { x: this.mapContainer.position.x + (this.mapVisualWidthScaled >> 1) - this.externalCenter.x, y: this.mapContainer.position.y - this.externalCenter.y };
+        const oldScale = this.currentScale;
+        
+        this.setScale(scale, instantZoom);
+        
+        const ratio = this.currentScale / oldScale;
+        this.centralizeToPoint(this.externalCenter.x + diff.x * ratio, this.externalCenter.y + diff.y * ratio, instantZoom);
+    }
+
+    setScale(s, instantZoom) {
+        this.currentScale = s;
+        this.mapVisualWidthScaled = this.mapVisualWidthReal * this.currentScale;
+        this.mapVisualHeightScaled = this.mapVisualHeightReal * this.currentScale;
+        
+        if (instantZoom) {
+            this.mapContainer.scale.set(this.currentScale);
+        } else {
+            this.moveEngine.addTween(this.mapContainer.scale, 0.5, { x: this.currentScale, y: this.currentScale }, 0, "easeInOut", true );
+        }
     }
 
     centralizeToPoint(px, py, instantRelocate) {
@@ -530,6 +565,11 @@ class Character extends PIXI.Container {
         this.animations.walk_ne = { textures: this.animations.walk_nw.textures, flipX: true };
         this.animations.walk_se = { textures: this.animations.walk_sw.textures, flipX: true };
 
+        this.animations.attack_nw = { textures: loadAniTexture("atk_up", 10), flipX: false };
+        this.animations.attack_sw = { textures: loadAniTexture("atk_left", 10), flipX: false };
+        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
 
         // 그림자를 추가한다
         const shadow = new PIXI.Sprite(PIXI.Texture.fromFrame("shadow.png"));
@@ -562,6 +602,7 @@ class Character extends PIXI.Container {
     }
 
     changeVisualToDirection(direction) {
+        this.currentDir = direction;
         if (this.isMoving) {
             // 이동 애니메이션
             this.setAnimation('walk_' + getDirectionName(direction));

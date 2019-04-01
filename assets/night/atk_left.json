@@ -199,26 +199,6 @@
                 "w": 32,
                 "h": 48
             }
-        },
-        "atk_left10.png": {
-            "frame": {
-                "x": 320,
-                "y": 0,
-                "w": 32,
-                "h": 48
-            },
-            "rotated": false,
-            "trimmed": false,
-            "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 32,
-                "h": 48
-            },
-            "sourceSize": {
-                "w": 32,
-                "h": 48
-            }
         }
     },
     "meta": {
