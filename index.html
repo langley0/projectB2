@@ -14,166 +14,42 @@
         <script src="js/isoengine/engine.js"></script>
         <script src="js/isoengine/moveengine.js"></script>
         <script src="js/isoengine/bloom.js"></script>
-        <script src="js/isoengine/battle.js"></script>
         <script src="js/isoengine/movieclip.js"></script>
+        
+        <script src="js/tweens.js"></script>
+        <script src="js/battle.js"></script>
+        <script src="js/game.js"></script>
         <style>
         </style>
       
     </head>
     <body>
         <script>
-                var pixiRoot = new PIXI.Application(800, 600, { backgroundColor : 0x6BACDE });
-                document.body.appendChild(pixiRoot.view);
 
-                var loader = new PIXI.loaders.Loader();
-                
-                // 텍스쳐를 임의로 만들어서 넣는다
-                loader.add("tiles.json", "assets/mapdata/tiles.json",);
-                loader.add("tiles.png", "assets/mapdata/tiles.png",);
-                loader.add("objects.json", "assets/mapdata/objects.json",);
-                loader.add("objects.png", "assets/mapdata/objects.png",);
-                loader.add("walls.json", "assets/mapdata/walls.json",);
-                loader.add("walls.png", "assets/mapdata/walls.png",);
-                loader.add("map.json", "assets/mapdata/map.json",);
-
-                // 캐릭터 애니메이션
-                loader.add("assets/night/atk_left.json");
-                loader.add("assets/night/atk_up.json");
-                loader.add("assets/night/idle.json");
-                loader.add("assets/night/idle_up.json");
-                loader.add("assets/night/walk_down.json");
-                loader.add("assets/night/walk_up.json");
-
-                loader.add("shadow.png", "assets/shadow.png");
-
-                loader.add("windowlight.png", "assets/windowlight.png");
-
-                
-                loader.load(function (loader, resources) { 
-                 
-                    const map2 = new Engine.IsoMap(17, 17, 32, 16); // 일단 하드코딩
-
-                    const tiles = resources["tiles.json"].data
-                    const objects = resources["objects.json"].data  
-                    const walls = resources["walls.json"].data
-
-                    const newMap = resources["map.json"].data
-
-                    const tiledata = [
-                        { data: tiles,  image: resources["tiles.png"].data, prefix: "tiles_", idStart: 1 },
-                        { data: objects,  image: resources["objects.png"].data, prefix: "objects_", idStart: 273 },
-                        { data: walls,  image: resources["walls.png"].data, prefix: "walls_", idStart: 257 },
-                    ];
-
-                    for (const _t of tiledata) {
-                        const tiles = _t.data;
-                        const image = _t.image;
-                        const prefix = _t.prefix;
-                        const idStart = _t.idStart;
-
-                        for (let i = 0; i < tiles.tilecount; ++i) {
-                            const x = i % tiles.columns;
-                            const y = Math.floor(i / tiles.columns);
-                            const c = document.createElement('canvas');
-                            c.width = tiles.tilewidth + 2; 
-                            c.height = tiles.tileheight + 2;
-                            const context = c.getContext('2d');
-                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 0, tiles.tilewidth, tiles.tileheight);
-                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 2, tiles.tilewidth, tiles.tileheight);
-                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 0, 1, tiles.tilewidth, tiles.tileheight);
-                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 2, 1, tiles.tilewidth, tiles.tileheight);
-                            context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 1, tiles.tilewidth, tiles.tileheight);
-                            const texture = PIXI.Texture.fromCanvas(c, new PIXI.Rectangle (1, 1, tiles.tilewidth, tiles.tileheight));
-
-                            const textureName = prefix + i + ".png";
-                            PIXI.Texture.addToCache(texture, textureName);
-                            map2.addTile(i+idStart, textureName);
-                        }
-                    }
-
-
-                    const groundLayer = newMap.layers[0];
-                    for (let y = 0; y < groundLayer.height;++y) {
-                        for (let x = 0; x < groundLayer.width;++x) {
-                            const index =  y + (groundLayer.width - x -1)* groundLayer.width;
-                            map2.setGroundTile(x, y, groundLayer.data[index]);
-                        }
-                    }
-
-                    const objectsLayer = newMap.layers[1];
-                    for (let y = 0; y < groundLayer.height;++y) {
-                        for (let x = 0; x < groundLayer.width;++x) {
-                            // -90도 돌려준다
-                            const index =  y + (groundLayer.width - x -1)* groundLayer.width;
-                            map2.setObjectTile(x, y, objectsLayer.data[index]);
-                        }
-                    }
-
-                
-                    map2.build();
-                    pixiRoot.stage.addChild(map2);
-                  
-                    // 캐릭터를 추가한다
-                    const character = new Engine.Character();
-                    map2.addCharacter(character, 4, 4);
-
-                    map2.onTileSelected = (x, y) => {
-                        // 캐릭터를 옮긴다
-                        map2.moveCharacter(character, x, y);
-                    };
-
-                    // 라이팅 이펙트를 추가해보자
-                    {
-                        /*var bcover = new PIXI.extras.TilingSprite(PIXI.Texture.WHITE, 800, 600);
-                        bcover.tint = 0;
-                        bcover.alpha = 0.5;
-                        bcover.position.y -= 300;
-                        map2.mapContainer.addChild(bcover);
-
-                        var tilingSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("windowlight.png"));
-                        tilingSprite.alpha = 1;
-                        tilingSprite.position.y -= 150;
-                        tilingSprite.position.x += 164;
-                        tilingSprite.blendMode = PIXI.BLEND_MODES.ADD;
-                        
-
-                        
+            // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
+            // 로딩 속도를 최적화 하기 위해서
+            // 일단은 모든 데이터를 다 넣도록 하자 (알아서 캐싱된다)
             
-                        const graphics = new PIXI.Graphics();
-                        graphics.beginFill(0);
-                        graphics.moveTo(150,0);
-                        graphics.lineTo(150, 32);
-                        graphics.lineTo(0,148);
-                        graphics.lineTo(0, 64);
-                        graphics.lineTo(150, 0);
-                        graphics.endFill();
+            const game = new Game(800, 600);
+            game.start({ stagePath: 'assets/mapdata/map.json' });
+            let toggle = true;
 
-                        tilingSprite.mask = graphics;
-                        tilingSprite.addChild(graphics);
-
-                        map2.mapContainer.addChild(tilingSprite);
-
-                        // 블룸효과
-                        //pixiRoot.stage.filters = [new AdvancedBloomFilter()];
-                        const bloom = new AdvancedBloomFilter();*/
-                       
-                        window.addEventListener("keydown", (e) => {
-                            if (e.keyCode === 66) {
-                                if (pixiRoot.stage.filters) {
-                                    pixiRoot.stage.filters = null;
-                                } else {
-                                    pixiRoot.stage.filters = [bloom];
-                                }
-                            } else if (e.keyCode  === 67) {
-                                // 배틀씬 추가
-                                const battle = new Battle(map2, character);
-                                battle.prepare();
-                                setTimeout(battle.start.bind(battle), 3000);
-                            }
-                        }, true);
+            window.addEventListener("keydown", (e) => {
+                if (e.keyCode === 66) {
+                    // 스테이지를 변경한다
+                    toggle = !toggle;
+                    if (toggle) {
+                        game.enterStage('assets/mapdata/map.json');
+                    } else {
+                        game.enterStage('assets/mapdata/map2.json');
                     }
-                });
-
+                } else if (e.keyCode  === 67) {
+                    // 배틀씬 추가
+                    const battle = new Battle(game.stage, game.player);
+                    battle.prepare();
+                    setTimeout(battle.start.bind(battle), 3000);
+                } 
+            }, true);
         </script>
     </body>
 </html>

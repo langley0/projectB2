@@ -455,12 +455,18 @@ class IsoMap extends PIXI.Container {
         }	
     }
 
-    checkForFollowCharacter(obj) {
+    checkForFollowCharacter(obj, instantFollow) {
         if (true) {
             this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
             const px = this.externalCenter.x - obj.position.x * this.currentScale;
             const py = this.externalCenter.y - obj.position.y * this.currentScale;
-            this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
+            
+            if (instantFollow) {
+                this.mapContainer.position.x = px;
+                this.mapContainer.position.y = py;
+            } else {
+                this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
+            }
         }
     }
 
