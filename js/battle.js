@@ -1,14 +1,17 @@
 
 // 전투 씬을 구성하고 싸우게 한다
 class Battle {
-    constructor(engine, player) {
-        this.engine = engine;
-        this.player = player;
+    constructor(game) {
 
+        this.game = game;
+       
         this.movies = [];
     }
 
     prepare() {
+        this.engine = game.stage;
+        this.player = game.player;
+
         // 적절한 위치에 배치를 한다
         this.engine.moveCharacter(this.player, 6, 6);
 
@@ -19,22 +22,15 @@ class Battle {
         
         const backup = this.engine.onTileSelected;
         this.engine.onTileSelected = null;
-
-        // 스케일을 변경한다
-        this.engine.zoomTo(2);
-        //this.engine.moveEngine.addTween(this.engine.mapContainer.scale, 1, { x: 2, y: 2 }, 0, "easeInOut", true );
-    
-        //this.engine.mapContainer.scale.x = 2;
-        //this.engine.mapContainer.scale.y = 2;
     }
 
     start() {
-        // 전투를 시작한다
-        // 해당 플레이어의 턴을 실행한다
-        requestAnimationFrame(this.update.bind(this));
+        this.prepare();
+        setTimeout(() => {
 
-        this.turnCount = 0;
-        this.nextTurn();
+            this.turnCount = 0;
+            this.nextTurn();
+        }, 3000);
     }
 
     nextTurn() {
@@ -139,8 +135,5 @@ class Battle {
                 i--; len--;
             }
         }
-        requestAnimationFrame(this.update.bind(this));
     }
-
-    waitCommant
 }

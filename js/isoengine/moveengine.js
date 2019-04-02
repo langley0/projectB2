@@ -55,10 +55,6 @@ class MoveEngine {
         this.tweenTargets = [];
 
         this.fps = 60;
-        this.processFunc = this.run.bind(this);
-        this.ticker = new PIXI.ticker.Ticker();
-        this.ticker.add(this.processFunc);
-        this.ticker.start();
     }
 
     setObject(o, x, y) {
@@ -211,7 +207,7 @@ class MoveEngine {
         return targetRemoved;
     }
 
-    run() {
+    update() {
         if (this.processFrame) {
             if (this.activeForMovables) {
                 let len = this.movables.length;

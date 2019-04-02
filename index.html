@@ -17,6 +17,7 @@
         <script src="js/isoengine/movieclip.js"></script>
         
         <script src="js/tweens.js"></script>
+        <script src="js/explore.js"></script>
         <script src="js/battle.js"></script>
         <script src="js/game.js"></script>
         <style>
@@ -32,6 +33,13 @@
             
             const game = new Game(800, 600);
             game.start({ stagePath: 'assets/mapdata/map.json' });
+            const game_update = () => {
+                game.update();
+                requestAnimationFrame(game_update);
+            }
+            game_update();
+
+
             let toggle = true;
 
             window.addEventListener("keydown", (e) => {
@@ -39,9 +47,9 @@
                     // 스테이지를 변경한다
                     toggle = !toggle;
                     if (toggle) {
-                        game.enterStage('assets/mapdata/map.json');
+                        game.enterStage('assets/mapdata/map.json', "explore");
                     } else {
-                        game.enterStage('assets/mapdata/map2.json');
+                        game.enterStage('assets/mapdata/map2.json', "battle");
                     }
                 } else if (e.keyCode  === 67) {
                     // 배틀씬 추가

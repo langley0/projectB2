@@ -7,11 +7,18 @@ class Game {
         // 렌더링 레이어를 설정한다
         this.background = new PIXI.Container();
         this.gamelayer = new PIXI.Container(); // 게임용
-        this.forground = new PIXI.Container(); // UI 
+        this.foreground = new PIXI.Container(); // UI 
 
         pixi.stage.addChild(this.background);
         pixi.stage.addChild(this.gamelayer);
-        pixi.stage.addChild(this.forground);
+        pixi.stage.addChild(this.foreground);
+
+        // 클릭 이벤트
+        this.gamelayer.mouseup = this.onGameClick.bind(this);
+        this.gamelayer.interactive = true;
+
+        this.foreground.mouseup = this.onForegroundClick.bind(this);
+        this.foreground.interactive = true;
         
         // 암전용 블랙스크린을 설치한다
         const blackScreen = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -29,7 +36,10 @@ class Game {
         this.blur = blurFilter;
 
         this.tweens = new Tweens();
-        this.update();
+        this.battleMode = new Battle(this);
+        this.exploreMode = new Explore(this);
+        this.currentMode = null;
+        this.nextStageMode = null;
     }
 
     start(playerInfo) {
@@ -39,7 +49,7 @@ class Game {
         this.loadCharacter(() => {
             this.player = new Engine.Character();
             // 플레이어가 속한 스테이지 들어간다
-            this.enterStage(playerInfo.stagePath);
+            this.enterStage(playerInfo.stagePath, "explore");
         });
     }
 
@@ -171,7 +181,8 @@ class Game {
         });
     }
 
-    enterStage(stagePath) {
+    enterStage(stagePath, mode) {
+        this.nextStageMode = mode;
         if (this.stage) {
             // 기존 스테이지에서 나간다
             this.tweens.addTween(this.blur, 1, { blur: 32 }, 0, "easeIn", true );
@@ -207,27 +218,41 @@ class Game {
 
         this.stage = stage;
         this.gamelayer.addChild(stage);
+    
 
         // 다시 암전을 밝힌다
         this.tweens.addTween(this.blur, 1, { blur: 0 }, 0, "easeOut", true );
         this.tweens.addTween(this.blackScreen, 1, { alpha: 0 }, 0, "easeOut", true, () => {
             // 페이드 인이 끝나면 게임을 시작한다
-            console.log('game start');
+            if (this.nextStageMode === "battle") {
+                this.currentMode = this.battleMode;
+            } else {
+                this.currentMode = this.exploreMode;
+            }
+            this.nextStageMode = null;
+            this.currentMode.start();
         });
     }
 
-    explore() {
-
+    onGameClick(event) {
+        if (this.currentMode && this.currentMode.onGameClick) {
+            this.currentMode.onGameClick(event);
+        }
     }
 
-    battle() {
-
+    onForegroundClick(event) {
+        if (this.currentMode && this.currentMode.onForegroundClick) {
+            this.currentMode.onGameClick(event);
+        }
     }
 
     update() {
         this.tweens.update();
-        //this.pixi.render(); 
-        
-        requestAnimationFrame(this.update.bind(this));
+        if (this.stage) {
+            this.stage.update();
+        }
+        if (this.currentMode) {
+            this.currentMode.update();
+        }
     }
 }

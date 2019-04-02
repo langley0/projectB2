@@ -140,9 +140,9 @@ class IsoMap extends PIXI.Container {
         this.mapContainer.addChild(this.groundContainer);
         this.mapContainer.addChild(this.objectContainer);
 
-        this.mousedown = this.touchstart = this.onMouseDown.bind(this);
-	    this.mousemove = this.touchmove = this.onMouseMove.bind(this);
-        this.mouseup = this.mouseupout = this.touchend = this.onMouseUp.bind(this);
+        //this.mousedown = this.touchstart = this.onMouseDown.bind(this);
+	    //this.mousemove = this.touchmove = this.onMouseMove.bind(this);
+        //this.mouseup = this.mouseupout = this.touchend = this.onMouseUp.bind(this);
         this.interactive = true;
 
         this.pathFinder = new PathFinder(this.mapWidth, this.mapHeight);
@@ -534,6 +534,10 @@ class IsoMap extends PIXI.Container {
         const index = x + y * this.mapWidth;
         this.objectMap[index] = obj;
         this.objectContainer.addChild(obj);
+    }
+
+    update() {
+        this.moveEngine.update();
     }
                 
 }
