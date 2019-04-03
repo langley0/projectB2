@@ -21,7 +21,7 @@ class Tweens {
                 overwrite : 	overwrite || false,
                 onComplete : 	onComplete || null,
                 totalFrames : 	duration * this.fps,
-                delayFrane:     delay * this.fps,
+                delayFrame:     delay * this.fps,
                 currentFrame : 	0,
                 vars : 			v
             };
@@ -101,14 +101,14 @@ class Tweens {
                 {
                     const t = tweens[j];
                     t.currentFrame++;
-                    if (t.currentFrame >= t.delayFrane) {
+                    if (t.currentFrame >= t.delayFrame) {
                         const vars = t.vars;
                         for (const prop in vars)
                         {
-                            o[prop] = t.easingFunc(t.currentFrame, vars[prop].b, vars[prop].c, t.totalFrames);
+                            o[prop] = t.easingFunc(t.currentFrame - t.delayFrame, vars[prop].b, vars[prop].c, t.totalFrames);
                         }
                         
-                        if (t.currentFrame >= t.totalFrames) {
+                        if (t.currentFrame - t.delayFrame >= t.totalFrames) {
                             if (t.onComplete) { t.onComplete(); }
                             if (this.removeTween(o, t)) 
                             {

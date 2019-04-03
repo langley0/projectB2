@@ -16,13 +16,11 @@
         <script src="js/isoengine/bloom.js"></script>
         <script src="js/isoengine/movieclip.js"></script>
 
-        <script src="js/dialog.js"></script>
-        
         <script src="js/tweens.js"></script>
         <script src="js/explore.js"></script>
         <script src="js/battle.js"></script>
         <script src="js/game.js"></script>
-
+        <script src="js/ui.js"></script>
         <style>
         </style>
       
@@ -39,6 +37,9 @@
                 ["dialog.png", "assets/dialog.png"],
 
             ], () => {
+                const ui = new UI(game);
+                game.ui = ui;
+
                 game.start({ stagePath: 'assets/mapdata/map.json' });
                 const game_update = () => {
                     game.update();
@@ -59,10 +60,7 @@
                             game.enterStage('assets/mapdata/map2.json', "battle");
                         }
                     } else if (e.keyCode  === 67) {
-                        const d = new Dialog ("테스트 다이얼로그입니다", 800, 100);
-                        // 다이얼로그 테스트
-                        game.foreground.addChild(d);
-                        
+                        ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
                     } 
                 }, true);
             });

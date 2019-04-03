@@ -1,5 +1,9 @@
 class Game {
     constructor(width, height) {
+
+        this.screenWidth = width;
+        this.screenHeight = height;
+
         const pixi = new PIXI.Application(width, height, { backgroundColor : 0x6BACDE, forceCanvas: true });
         document.body.appendChild(pixi.view);
         this.pixi = pixi;
@@ -122,6 +126,7 @@ class Game {
             ["map.json", "assets/mapdata/map.json"],
             ["window_light.png", "assets/window_light.png"],
             ["torch_light.png", "assets/torch_light.png"],
+            ["background.png", "assets/background.png"]
         ];
 
         const loader = new PIXI.loaders.Loader();
@@ -222,6 +227,9 @@ class Game {
             // 렌더링 데이터를 빌드한다
             stage.build();
 
+            // 백그라운드 이미지를 추가한다
+            this.background.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("background.png")));
+
             // 로딩 완료 콜백
             if (onLoadComplete) {
                 onLoadComplete(stage);
@@ -235,6 +243,7 @@ class Game {
             // 기존 스테이지에서 나간다
             this.tweens.addTween(this.blur, 1, { blur: 32 }, 0, "easeIn", true );
             this.tweens.addTween(this.blackScreen, 1, { alpha: 1 }, 0, "easeIn", true, () => {
+                this.background.removeChildren();
                 this.gamelayer.removeChildren();
                 
                 
@@ -248,36 +257,25 @@ class Game {
     }
 
     onStageLoadCompleted(stage) {
-        // 플레이어를 맵에 추가한다
-        // 맵에 스타팅 포인트가 있어야 하는데? 
-        const spawnPoint = { x: 4, y: 4 };
-        const zoomLevel = 2;
-
-        stage.addCharacter(this.player, spawnPoint.x, spawnPoint.y);
-        stage.checkForFollowCharacter(this.player, true);
-        stage.onTileSelected = (x, y) => {
-            // 캐릭터를 옮긴다
-            stage.moveCharacter(this.player, x, y);
-        };
-        
-
         // 스테이지의 줌레벨을 결정한다
-        stage.zoomTo(zoomLevel, true);
+        stage.zoomTo(2, true);
 
         this.stage = stage;
         this.gamelayer.addChild(stage);
     
+        // 페이드 인이 끝나면 게임을 시작한다
+        if (this.nextStageMode === "battle") {
+            this.currentMode = this.battleMode;
+        } else {
+            this.currentMode = this.exploreMode;
+        }
+        this.nextStageMode = null;
+
+        this.currentMode.prepare();
 
         // 다시 암전을 밝힌다
         this.tweens.addTween(this.blur, 1, { blur: 0 }, 0, "easeOut", true );
         this.tweens.addTween(this.blackScreen, 1, { alpha: 0 }, 0, "easeOut", true, () => {
-            // 페이드 인이 끝나면 게임을 시작한다
-            if (this.nextStageMode === "battle") {
-                this.currentMode = this.battleMode;
-            } else {
-                this.currentMode = this.exploreMode;
-            }
-            this.nextStageMode = null;
             this.currentMode.start();
         });
     }

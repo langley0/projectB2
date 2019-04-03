@@ -238,6 +238,10 @@ class IsoMap extends PIXI.Container {
         return this.groundMap[x + y*this.mapWidth];
     }
 
+    getObjectAt(x, y) {
+        return this.objectMap[x + y*this.mapWidth];
+    }
+
     getTileTexture(tileid) {
         const src = this.tiles[tileid];
         if (src) {
