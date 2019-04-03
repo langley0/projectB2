@@ -1,6 +1,6 @@
 class Game {
     constructor(width, height) {
-        const pixi = new PIXI.Application(width, height, { backgroundColor : 0x6BACDE });
+        const pixi = new PIXI.Application(width, height, { backgroundColor : 0x6BACDE, forceCanvas: true });
         document.body.appendChild(pixi.view);
         this.pixi = pixi;
 
@@ -40,6 +40,30 @@ class Game {
         this.exploreMode = new Explore(this);
         this.currentMode = null;
         this.nextStageMode = null;
+    }
+
+    preload(resources, onComplete) {
+        // TODO : 나중에 로딩 루틴을 하나로 통일 하여야 한다. 지금은 같은 코드의 중복이 너무 심하다
+        const loader = new PIXI.loaders.Loader();
+        for (const res of resources) {
+            if (Array.isArray(res)) {
+                if (!PIXI.utils.TextureCache[res[0]] && !PIXI.utils.BaseTextureCache[res[0]]) {
+                    loader.add(...res);
+                }
+            } else {
+                const texturePackName = res + '_image';
+                if (!PIXI.utils.TextureCache[res] && !PIXI.utils.BaseTextureCache[res] && 
+                    !PIXI.utils.TextureCache[texturePackName] && !PIXI.utils.BaseTextureCache[texturePackName]) {
+                    loader.add(res);
+                }
+            }
+        }
+
+        loader.load((_, result) => {
+            if (onComplete) {
+                onComplete(result);
+            }
+        });
     }
 
     start(playerInfo) {

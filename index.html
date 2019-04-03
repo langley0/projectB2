@@ -15,11 +15,14 @@
         <script src="js/isoengine/moveengine.js"></script>
         <script src="js/isoengine/bloom.js"></script>
         <script src="js/isoengine/movieclip.js"></script>
+
+        <script src="js/dialog.js"></script>
         
         <script src="js/tweens.js"></script>
         <script src="js/explore.js"></script>
         <script src="js/battle.js"></script>
         <script src="js/game.js"></script>
+
         <style>
         </style>
       
@@ -32,32 +35,37 @@
             // 일단은 모든 데이터를 다 넣도록 하자 (알아서 캐싱된다)
             
             const game = new Game(800, 600);
-            game.start({ stagePath: 'assets/mapdata/map.json' });
-            const game_update = () => {
-                game.update();
-                requestAnimationFrame(game_update);
-            }
-            game_update();
+            game.preload([
+                ["dialog.png", "assets/dialog.png"],
+
+            ], () => {
+                game.start({ stagePath: 'assets/mapdata/map.json' });
+                const game_update = () => {
+                    game.update();
+                    requestAnimationFrame(game_update);
+                }
+                game_update();
 
 
-            let toggle = true;
+                let toggle = true;
 
-            window.addEventListener("keydown", (e) => {
-                if (e.keyCode === 66) {
-                    // 스테이지를 변경한다
-                    toggle = !toggle;
-                    if (toggle) {
-                        game.enterStage('assets/mapdata/map.json', "explore");
-                    } else {
-                        game.enterStage('assets/mapdata/map2.json', "battle");
-                    }
-                } else if (e.keyCode  === 67) {
-                    // 배틀씬 추가
-                    const battle = new Battle(game.stage, game.player);
-                    battle.prepare();
-                    setTimeout(battle.start.bind(battle), 3000);
-                } 
-            }, true);
+                window.addEventListener("keydown", (e) => {
+                    if (e.keyCode === 66) {
+                        // 스테이지를 변경한다
+                        toggle = !toggle;
+                        if (toggle) {
+                            game.enterStage('assets/mapdata/map.json', "explore");
+                        } else {
+                            game.enterStage('assets/mapdata/map2.json', "battle");
+                        }
+                    } else if (e.keyCode  === 67) {
+                        const d = new Dialog ("테스트 다이얼로그입니다", 800, 100);
+                        // 다이얼로그 테스트
+                        game.foreground.addChild(d);
+                        
+                    } 
+                }, true);
+            });
         </script>
     </body>
 </html>
