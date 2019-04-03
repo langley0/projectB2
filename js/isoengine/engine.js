@@ -136,9 +136,12 @@ class IsoMap extends PIXI.Container {
 
         this.groundContainer = new PIXI.Container();
         this.objectContainer = new PIXI.Container()
+        this.overlayContainer = new PIXI.Container()
 
         this.mapContainer.addChild(this.groundContainer);
         this.mapContainer.addChild(this.objectContainer);
+        this.mapContainer.addChild(this.overlayContainer);
+        
 
         //this.mousedown = this.touchstart = this.onMouseDown.bind(this);
 	    //this.mousemove = this.touchmove = this.onMouseMove.bind(this);

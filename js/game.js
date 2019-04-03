@@ -120,7 +120,8 @@ class Game {
             ["walls.json", "assets/mapdata/walls.json"],
             ["walls.png", "assets/mapdata/walls.png"],
             ["map.json", "assets/mapdata/map.json"],
-            ["windowlight.png", "assets/windowlight.png"],
+            ["window_light.png", "assets/window_light.png"],
+            ["torch_light.png", "assets/torch_light.png"],
         ];
 
         const loader = new PIXI.loaders.Loader();
@@ -178,14 +179,41 @@ class Game {
             for (const layer of mapData.layers) {
                 for (let y = 0; y < layer.height;++y) {
                     for (let x = 0; x < layer.width;++x) {
+                        // 맵툴문제 때문에 90 도를 뒤집어야 한다
+                        const index =  y + (layer.width - x -1) * layer.width;
+                        const tileId = layer.data[index];
+
                         // 90 도 회전시킨다.
-                        const index =  y + (layer.width - x -1)* layer.width;
+                        
                         if (layer.name === "Tiles") {
                             // 타일
-                            stage.setGroundTile(x, y, layer.data[index]);
+                            stage.setGroundTile(x, y, tileId);
                         } else {
                             // 오브젝트이다
-                            stage.setObjectTile(x, y, layer.data[index]);
+                            stage.setObjectTile(x, y, tileId);
+                        }
+
+                        // 특수 타일 처리
+                        // 이 특수타일들에 대한 정보를 나중에 별도의 데이터로 분리해야한다.
+                        // { tileid , tiletype }
+                        // 앵커를 없애고 타일좌표로 맞추는것이 필요할지도 모르겠다.
+                        if (tileId === 282) {
+                            // 윈도우
+                            const light = new PIXI.Sprite(PIXI.Texture.fromFrame("window_light.png"));
+                            light.anchor.x = 1;
+                            light.position.x = stage.getTilePosXFor(x, y) + 15;
+                            light.position.y = stage.getTilePosYFor(x, y) + stage.TILE_HALF_H - 71;
+                            light.blendMode = PIXI.BLEND_MODES.ADD;
+                            stage.overlayContainer.addChild(light)
+                        } else if (tileId === 279) {
+                            // 토치 라이트
+                            const light = new PIXI.Sprite(PIXI.Texture.fromFrame("torch_light.png"));
+                            light.anchor.x = 0.5;
+                            light.anchor.y = 0.5;
+                            light.position.x = stage.getTilePosXFor(x, y) + 16;
+                            light.position.y = stage.getTilePosYFor(x, y) + stage.TILE_HALF_H - 69;
+                            light.blendMode = PIXI.BLEND_MODES.ADD;
+                            stage.overlayContainer.addChild(light)
                         }
                     }
                 }
