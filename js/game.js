@@ -166,10 +166,6 @@ class Game {
                         c.width = tiles.tilewidth + 2; 
                         c.height = tiles.tileheight + 2;
                         const context = c.getContext('2d');
-                        context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 0, tiles.tilewidth, tiles.tileheight);
-                        context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 2, tiles.tilewidth, tiles.tileheight);
-                        context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 0, 1, tiles.tilewidth, tiles.tileheight);
-                        context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 2, 1, tiles.tilewidth, tiles.tileheight);
                         context.drawImage(image, x * tiles.tilewidth, y * tiles.tileheight, tiles.tilewidth, tiles.tileheight, 1, 1, tiles.tilewidth, tiles.tileheight);
                         const texture = PIXI.Texture.fromCanvas(c, new PIXI.Rectangle (1, 1, tiles.tilewidth, tiles.tileheight));
                         PIXI.Texture.addToCache(texture, textureName);
