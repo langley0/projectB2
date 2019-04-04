@@ -123,7 +123,6 @@ class Game {
             ["objects.png", "assets/mapdata/objects.png"],
             ["walls.json", "assets/mapdata/walls.json"],
             ["walls.png", "assets/mapdata/walls.png"],
-            ["map.json", "assets/mapdata/map.json"],
             ["window_light.png", "assets/window_light.png"],
             ["torch_light.png", "assets/torch_light.png"],
             ["background.png", "assets/background.png"]
@@ -159,6 +158,22 @@ class Game {
                 const prefix = tileset.source.replace('.json', '_');
                 const idStart = tileset.firstgid;
 
+                // ======================================================
+                // 타일안에 디테일 데이터가 있으면 별도로 처리한다
+                const customTileData = {};
+                if (tiles.tiles) {
+                    for (const data of tiles.tiles) {
+                        const custom = {};
+                        for( const property of data.properties) {
+                            if (property.name === "movable") {
+                                custom.movable = property.value;
+                            }
+                        }
+                        customTileData[data.id + idStart] = custom;
+                    }
+                }
+                // ======================================================
+
                 for (let i = 0; i < tiles.tilecount; ++i) {
 
                     const textureName = prefix + i + ".png";
@@ -176,7 +191,8 @@ class Game {
                         const texture = PIXI.Texture.fromCanvas(c, new PIXI.Rectangle (1, 1, tiles.tilewidth, tiles.tileheight));
                         PIXI.Texture.addToCache(texture, textureName);
                     }
-                    stage.addTile(i+idStart, textureName); // 나중에 타일매니져로 교체한다
+                    // TODO : 나중에 타일매니져로 교체한다
+                    stage.addTile(i+idStart, textureName, customTileData[i + idStart]); 
                 }
             }
 

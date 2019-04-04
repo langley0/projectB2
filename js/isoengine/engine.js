@@ -60,10 +60,12 @@ const TILE_WIDTH  = 32;
 const TILE_HEIGHT = 16;
 
 class Tile extends PIXI.Container {
-    constructor(x, y) {
+    constructor(x, y, options) {
         super();
         this.gridX = x;
         this.gridY = y;
+        this.setTexture(PIXI.Texture.fromFrame(options.textureName));
+        this.movable = options.movable || false;
     }
 
     setTexture(texture) {
@@ -201,16 +203,18 @@ class IsoMap extends PIXI.Container {
         }
     }
 
-    addTile(id, textureName) {
-        this.tiles[id] =  textureName;
+    addTile(id, textureName, options) {
+        options = options || {};
+        options.textureName = textureName;
+        this.tiles[id] = options;
+            
     }
 
     setGroundTile(x, y, tileId) {
         if (tileId > 0) {
-            const gtile = new Tile(x, y);
+            const gtile = new Tile(x, y, this.getTileData(tileId));
             gtile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
             gtile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-            gtile.setTexture(this.getTileTexture(tileId));
 
             this.groundMap[x + y * this.mapWidth] = gtile;
         }
@@ -218,10 +222,9 @@ class IsoMap extends PIXI.Container {
 
     setObjectTile(x, y, tileId) {
         if (tileId > 0) {
-            const otile = new Tile(x, y);
+            const otile = new Tile(x, y, this.getTileData(tileId));
             otile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
             otile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-            otile.setTexture(this.getTileTexture(tileId));
             this.objectMap[x + y * this.mapWidth] = otile;
         }
     }
@@ -242,13 +245,8 @@ class IsoMap extends PIXI.Container {
         return this.objectMap[x + y*this.mapWidth];
     }
 
-    getTileTexture(tileid) {
-        const src = this.tiles[tileid];
-        if (src) {
-            return PIXI.Texture.fromFrame(src);
-        } else {
-            return null;
-        }
+    getTileData(tileid) {
+        return this.tiles[tileid];
     }
 
     build() {
@@ -333,6 +331,7 @@ class IsoMap extends PIXI.Container {
     }
 
     moveCharacter(character, x, y) {
+        
         // 길을 찾는다
         if (character.isMoving) {
             // 다음 위치에서부터 시작을 한다
@@ -340,12 +339,21 @@ class IsoMap extends PIXI.Container {
             const startY = character.currentTargetTile ? character.currentTargetTile.y : character.gridY;
 
             const path  = this.pathFinder.solve(startX, startY, x, y);
-            character.newPath = path;
+            if (path) {
+                character.newPath = path;
+            }
         } else {
             const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
             if (path) {
                 this.moveObjThrough(character, path);
             }
+        }
+    }
+
+    checkInteractionTarget(x, y) {
+        const target = this.getObjectAt(x, y);
+        if (target.isInteractive) {
+            this.interactTarget = target;
         }
     }
 
@@ -399,18 +407,19 @@ class IsoMap extends PIXI.Container {
         this.moveEngine.removeMovable(obj);
         
         if (!pathEnded) {
-            //console.log(JSON.stringify(obj.currentPath))
-            //obj.currentPath.splice(obj.currentPath.length-1, 1);
-            //console.log(JSON.stringify(obj.currentPath))
             this.moveObjThrough(obj, obj.currentPath.slice(0, obj.currentPath.length-1));
         }
         else {
             // reached to the end of the path
             obj.isMoving = false;
             obj.changeVisualToDirection(obj.currentDirection);
-        }
 
-        const isControlCharacter = true;
+            // 인터랙션 타겟이 있었나?
+            if (this.interactTarget) {
+                // 캐릭터가 해당 물체를 클릭하였다
+                this.interactTarget.touch();
+            }
+        }
     }
 
     highlightPath(currentPath, newPath) {
