@@ -35,6 +35,9 @@
             const game = new Game(800, 600);
             game.preload([
                 ["dialog.png", "assets/dialog.png"],
+                ["dialogtitle.png", "assets/dialogtitle.png"],
+                ["theater.png", "assets/theater.png"],
+                ["item3.png", "assets/items/img3.png"],
 
             ], () => {
                 const ui = new UI(game);
@@ -60,7 +63,8 @@
                             game.enterStage('assets/mapdata/map2.json', "battle");
                         }
                     } else if (e.keyCode  === 67) {
-                        ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
+                        //ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
+                        ui.showItemAcquire();
                     } 
                 }, true);
             });

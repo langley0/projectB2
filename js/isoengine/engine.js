@@ -210,22 +210,36 @@ class IsoMap extends PIXI.Container {
             
     }
 
+    generateTile(x, y, tileId) {
+        const tileData = this.getTileData(tileId);
+        if(tileId === 270) {
+            console.log(tileData);
+        }
+
+        let tile;
+        if (tileData.objectType === "gate") {
+            tile = new Gate(x, y, tileData);
+        } else if (tileData.objectType === "chest") {
+            tile = new Chest(x, y, tileData);
+        } 
+        else {
+            tile = new Tile(x, y, tileData);
+        }
+        tile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
+        tile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
+        return tile;
+    }
+
     setGroundTile(x, y, tileId) {
         if (tileId > 0) {
-            const gtile = new Tile(x, y, this.getTileData(tileId));
-            gtile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
-            gtile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-
-            this.groundMap[x + y * this.mapWidth] = gtile;
+            this.groundMap[x + y * this.mapWidth] = this.generateTile(x, y, tileId);
         }
     }
 
     setObjectTile(x, y, tileId) {
         if (tileId > 0) {
-            const otile = new Tile(x, y, this.getTileData(tileId));
-            otile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
-            otile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-            this.objectMap[x + y * this.mapWidth] = otile;
+            this.objectMap[x + y * this.mapWidth] = this.generateTile(x, y, tileId);
+
         }
     }
 
@@ -254,15 +268,18 @@ class IsoMap extends PIXI.Container {
             for (let x = this.mapWidth - 1; x >= 0; --x) {
                 const index = x + y * this.mapWidth;
                 const groundTile = this.groundMap[index];
+                let movable = true;
                 if (groundTile) {
                     this.groundContainer.addChild(groundTile);
+                    movable &= groundTile.movable;
                 }
 
                 const objectTile = this.objectMap[index];
                 if (objectTile) {
                     this.objectContainer.addChild(objectTile);   
-                    this.pathFinder.setCell(x, y, 0);
+                    movable &= objectTile.movable;
                 }
+                this.pathFinder.setCell(x, y, movable);
             }
         }
     }
@@ -340,20 +357,32 @@ class IsoMap extends PIXI.Container {
 
             const path  = this.pathFinder.solve(startX, startY, x, y);
             if (path) {
+                if (this.checkInteractionTarget(path)) {
+                    path.splice(0, 1);
+                }
                 character.newPath = path;
             }
         } else {
             const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
             if (path) {
+                if (this.checkInteractionTarget(path)) {
+                    path.splice(0, 1);
+                }
                 this.moveObjThrough(character, path);
             }
         }
     }
 
-    checkInteractionTarget(x, y) {
-        const target = this.getObjectAt(x, y);
-        if (target.isInteractive) {
-            this.interactTarget = target;
+    checkInteractionTarget(path) {
+        
+        if (path && path.length > 0) {
+            const target = this.getObjectAt(path[0].x, path[0].y);
+            if (target && target.isInteractive) {
+                this.interactTarget = target;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -367,8 +396,13 @@ class IsoMap extends PIXI.Container {
             obj.newPath = undefined;
         }
 
+        if (path.length == 0) {
+            this.onObjMoveStepEnd(obj);
+            return;
+        }
+
         const isControlCharacter = true;
-        if (isControlCharacter) {
+        if (isControlCharacter & this.showPathHighlight) {
             this.highlightPath(obj.currentPath, path);
         }
 
@@ -417,7 +451,11 @@ class IsoMap extends PIXI.Container {
             // 인터랙션 타겟이 있었나?
             if (this.interactTarget) {
                 // 캐릭터가 해당 물체를 클릭하였다
-                this.interactTarget.touch();
+                const interactTarget = this.interactTarget;
+                this.interactTarget = null; // 먼저 null 로 만들어주어야 한다
+                if (this.onTouchObject) {
+                    this.onTouchObject(interactTarget);
+                }
             }
         }
     }
@@ -526,7 +564,7 @@ class IsoMap extends PIXI.Container {
     
     arrangeDepthsFromLocation(gridX, gridY) {
         for (let y = gridY; y < this.mapHeight; y++) {
-            for (let x = 0; x < gridX; x++) {
+            for (let x = gridX - 1; x >= 0; x--) {
                 const a = this.objectMap[x + y * this.mapWidth];
                 if (a) {
                     this.objectContainer.addChild(a);
@@ -536,8 +574,8 @@ class IsoMap extends PIXI.Container {
     }
 
     removeObjRefFromLocation(obj) {
-        const index = obj.gridX + obj.gridY * this.mapWidth;
-        this.objectMap[index] = null;
+        //const index = obj.gridX + obj.gridY * this.mapWidth;
+        //this.objectMap[index] = null;
         this.objectContainer.removeChild(obj);
     }
     
@@ -547,8 +585,8 @@ class IsoMap extends PIXI.Container {
         obj.gridY = y;
       
 
-        const index = x + y * this.mapWidth;
-        this.objectMap[index] = obj;
+        //const index = x + y * this.mapWidth;
+        //this.objectMap[index] = obj;
         this.objectContainer.addChild(obj);
     }
 
@@ -957,8 +995,60 @@ class PathFinder {
     }
 
     setCell(x, y, movable) {
-	    this.grid[y][x].weight = movable;
+	    this.grid[y][x].weight = movable ? 1 : 0;
     }
 }
 
 Engine.Character = Character;
+
+
+// 
+class Gate extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        // 철망을 붙인다
+        const base = PIXI.Texture.fromFrame("stealBar.png");
+        this.base = base;
+        this.bar1 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 0, base.width, 50)));
+        this.bar2 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 50, base.width, 40)));
+        this.bar3 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 90, base.width, base.height - 90)));
+        this.addChild(this.bar1);
+        this.addChild(this.bar2);
+        this.addChild(this.bar3);
+
+        // 초기값을 설정할 수 있어야 한다
+        this.openRatio = 0;
+    }
+
+    set openRatio(value) {
+        // 0이면 닫힌거고 1 이면 열린것
+        this.bar1.position.y = -this.base.height;
+        
+        this.bar2.position.y = this.bar1.position.y + this.bar1.height;
+        this.bar2.height = value * 40;
+        
+        this.bar3.position.y = this.bar1.position.y + 50 + this.bar2.height;
+
+        this._openRatio = value;
+    }
+
+    get openRatio() {
+        return this._openRatio;
+    }
+
+    
+}   
+
+class Chest extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        this.isInteractive = true;
+    }
+
+    touch(game) {
+        // 상자를 연다
+        game.ui.showItemAcquire();
+    }
+}

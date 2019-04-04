@@ -23,7 +23,7 @@ class Game {
 
         this.foreground.mouseup = this.onForegroundClick.bind(this);
         this.foreground.interactive = true;
-        
+    
         // 암전용 블랙스크린을 설치한다
         const blackScreen = new PIXI.Sprite(PIXI.Texture.WHITE);
         blackScreen.width = width + 128;
@@ -125,7 +125,8 @@ class Game {
             ["walls.png", "assets/mapdata/walls.png"],
             ["window_light.png", "assets/window_light.png"],
             ["torch_light.png", "assets/torch_light.png"],
-            ["background.png", "assets/background.png"]
+            ["background.png", "assets/background.png"],
+            ["stealBar.png", "assets/mapdata/stealBar.png"]
         ];
 
         const loader = new PIXI.loaders.Loader();
@@ -167,6 +168,9 @@ class Game {
                         for( const property of data.properties) {
                             if (property.name === "movable") {
                                 custom.movable = property.value;
+                            }
+                            if(property.name === "objectType") {
+                                custom.objectType = property.value;
                             }
                         }
                         customTileData[data.id + idStart] = custom;
@@ -307,7 +311,7 @@ class Game {
             this.currentMode.onGameClick(event);
         }
     }
-
+    
     update() {
         this.tweens.update();
         if (this.stage) {

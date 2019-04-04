@@ -1,3 +1,58 @@
+class BaseModal extends PIXI.Container {
+    constructor(ui, width, height) {
+        super();
+
+        const plane = new PIXI.mesh.NineSlicePlane(PIXI.Texture.from('dialog.png'), 12, 10, 12, 10);
+        plane.position.x = (ui.screenWidth - width) / 2;
+        plane.position.y = (ui.screenHeight - height) /2;
+        plane.width = width;
+        plane.height = height;
+        this.plane = plane;
+
+        const background = new PIXI.Sprite(PIXI.Texture.WHITE);
+        background.alpha = 0;
+        background.width = ui.screenWidth;
+        background.height = ui.screenHeight;
+        background.interactive = true; // 클릭을 방지한다
+        background.mouseup = this.onClick.bind(this);
+        
+        this.addChild(background);
+        this.addChild(plane);
+    }
+
+    addTitle(text) {
+        const style = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 24, fill : 0xffffff, align : 'center' });
+        const titleText = new PIXI.Text(text, style);
+        const textMetrics = PIXI.TextMetrics.measureText(text, style);
+
+        const width = this.plane.width - 24;
+        const height = textMetrics.height + 16;
+
+        // 타이틀을 여기에 추가한다
+        const titlePlane = new PIXI.mesh.NineSlicePlane(PIXI.Texture.from('dialogtitle.png'), 12, 10, 12, 10);
+        titlePlane.position.x = (this.plane.width - width) / 2;
+        titlePlane.position.y = 12;
+        titlePlane.width = width;
+        titlePlane.height = height;
+        
+        titleText.anchor.x = 0.5;
+        titleText.anchor.y = 0.5;
+        titleText.position.x = width /2;
+        titleText.position.y = height /2;
+
+        titlePlane.addChild(titleText);
+        this.plane.addChild(titlePlane);
+    }
+
+    onClick(event) {
+        // 여기서 입력을 가로챈다
+        event.stopped = true;
+        
+        // 창을 닫는다
+        this.visible = false;
+    }
+}
+
 class Dialog extends PIXI.Container {
     constructor(ui, width, height) {
         super();
@@ -99,6 +154,29 @@ class UI extends PIXI.Container {
         this.dialog = new Dialog(this, 700, 150);
         this.dialog.visible = false;
         this.addChild(this.dialog);
+
+        this.theater = new PIXI.Sprite(PIXI.Texture.fromFrame("theater.png"));
+        this.theater.visible =false;
+        this.addChild(this.theater);
+
+        this.itemAcquire = new BaseModal(this, 400, 300);
+        this.itemAcquire.addTitle("아이템 획득");
+        const itemSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("item3.png"));
+        itemSprite.anchor.x = 0.5;
+        itemSprite.anchor.y = 0.5;
+        itemSprite.position.x = this.itemAcquire.width / 2;
+        itemSprite.position.y = this.itemAcquire.height / 2 - 20;
+        const itemText = new PIXI.Text("개발용으로 만들어진 아이템.\n아직 인벤토리가 없는 것은 비밀이다.",{fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'center', wordWrap: true, wordWrapWidth: this.itemAcquire.width /2 });
+        itemText.anchor.x = 0.5;
+        itemText.anchor.y = 0.5;
+        itemText.position.x = this.itemAcquire.width / 2;
+        itemText.position.y = itemSprite.position.y + itemSprite.height / 2 + 32;
+        this.itemAcquire.addChild(itemText);
+
+
+        this.itemAcquire.addChild(itemSprite);
+        this.itemAcquire.visible = false;
+        this.addChild(this.itemAcquire);
         
     }
     
@@ -129,6 +207,38 @@ class UI extends PIXI.Container {
     showStatUI() {
         // 여기서 스탯 ui 를 만든다
         
+    }
+
+    showTheaterScreen(duration) {
+        // 위아래의 극장 스크린을 보여준다
+        const theater = this.theater;
+        theater.visible = true;
+
+        if (duration > 0) {
+            theater.alpha = 0;
+            this.game.tweens.addTween(theater, duration, { alpha: 1 }, 0, "easeInOut", true);
+        } else {
+            theater.alpha = 1;
+        }
+    }
+
+    hideTheaterScreen(duration) {
+        const theater = this.theater;
+        theater.visible = true;
+
+        if (duration > 0) {
+            this.game.tweens.addTween(theater, duration, { alpha: 0 }, 0, "easeInOut", true, () => {
+                theater.visible = false;
+            });
+        } else {
+            theater.alpha = 0;
+            theater.visible = false;
+        }
+    }
+
+
+    showItemAcquire() {
+        this.itemAcquire.visible = true;
     }
 
 }
