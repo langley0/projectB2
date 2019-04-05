@@ -311,7 +311,7 @@ class Game {
             this.currentMode.onGameClick(event);
         }
     }
-    
+
     update() {
         this.tweens.update();
         if (this.stage) {
@@ -320,5 +320,5 @@ class Game {
         if (this.currentMode) {
             this.currentMode.update();
         }
-    }
+   }
 }

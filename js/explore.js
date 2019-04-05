@@ -41,6 +41,7 @@ class Explore {
         }, 2000);
 
         setTimeout(() => {
+            this.game.ui.showChatBallon(game.player, "큰일이다 문이 닫혔다!\n어딘가 스위치가 있을거야 ...", 4);
             // 컷신을 끝낸다
             this.cutscene = false;
             this.game.ui.hideTheaterScreen(1);

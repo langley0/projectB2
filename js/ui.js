@@ -53,6 +53,57 @@ class BaseModal extends PIXI.Container {
     }
 }
 
+class ChatBallon extends PIXI.Container {
+    constructor(character, chatText) {
+        super(); 
+
+        // 한글자씩 나오는 애니메이션을 고민해보자
+        this.follower = character;
+        
+        const MAX_CHAT_WIDTH = 180;
+
+        const style = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 12, fill : 0, align : 'center', wordWrap: true, wordWrapWidth: MAX_CHAT_WIDTH });
+        const textMetrics = PIXI.TextMetrics.measureText(chatText, style);
+
+        // 캐릭터의 위치에 맞추어서 넣어야 한다
+        
+        const plane = new PIXI.mesh.NineSlicePlane(PIXI.Texture.from('chatballon.png'), 12, 10, 12, 10);
+        plane.width = textMetrics.width + 36;
+        plane.height = textMetrics.height + 36;
+        this.plane = plane;
+
+        const comma = new PIXI.Sprite(PIXI.Texture.from('chatballon_comma.png'));
+        comma.position.y = plane.height - 5;
+        this.comma = comma;
+
+        const text = new PIXI.Text(chatText, style);
+        text.anchor.x = 0.5;
+        text.anchor.y = 0.5;
+        text.position.x = plane.width / 2;
+        text.position.y = plane.height / 2;
+        
+
+        this.addChild(plane);
+        plane.addChild(comma);
+        plane.addChild(text);
+
+        this.updatePosition();
+    }
+
+    updatePosition() {
+        const character = this.follower;
+        const plane = this.plane;
+        const comma = this.comma;
+
+        const gpos = character.toGlobal(new PIXI.Point(0, 0));
+        plane.position.x = Math.max(gpos.x - plane.width / 2, 0);
+        plane.position.y = Math.max(gpos.y - character.height - plane.height - 36, 0);
+
+        comma.position.x = plane.width / 2;
+    }
+}
+
+
 class Dialog extends PIXI.Container {
     constructor(ui, width, height) {
         super();
@@ -177,6 +228,8 @@ class UI extends PIXI.Container {
         this.itemAcquire.addChild(itemSprite);
         this.itemAcquire.visible = false;
         this.addChild(this.itemAcquire);
+
+        this.chatBallons = [];
         
     }
     
@@ -241,4 +294,26 @@ class UI extends PIXI.Container {
         this.itemAcquire.visible = true;
     }
 
+    showChatBallon(character, text, duration) {
+        // 일정시간동안 보였다가 사라지게 한다.
+        const chat = new ChatBallon(character, text);
+        this.addChild(chat);
+        this.chatBallons.push(chat);
+        duration = duration || 3;
+
+        setTimeout(() => {
+            this.removeChild(chat);
+            const index = this.chatBallons.indexOf(chat);
+            if (index >= 0) {
+                this.chatBallons.splice(index, 1);
+            }
+        }, duration * 1000);
+    }
+
+    update() {
+        // 풍선들을 관리한다
+        for (const chat of this.chatBallons) {
+            chat.updatePosition();
+        }
+    }
 }
