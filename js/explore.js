@@ -23,6 +23,11 @@ class Explore {
         this.game.stage.showPathHighlight = false;
 
         this.game.stage.onTouchObject = this.onTouchObject.bind(this);
+        this.game.stage.onTilePassing = this.onTilePassing.bind(this);
+
+        // 게이트를 열어놓는다
+        const gate = this.game.stage.getObjectAt(3, 1);
+        gate.open();
     }
 
     start() {
@@ -37,7 +42,7 @@ class Explore {
         setTimeout(() => {
             // 게이트문을 찾아서 닫는다.
             const gate = this.game.stage.getObjectAt(3, 1);
-            this.game.tweens.addTween(gate, 0.5, { openRatio: 1 }, 0, "easeInOut", true);
+            gate.close(this.game.tweens);
         }, 2000);
 
         setTimeout(() => {
@@ -64,6 +69,40 @@ class Explore {
     onTouchObject(obj) {
         if (obj) {
             obj.touch(this.game);
+        }
+    }
+
+    onTilePassing(obj) {
+        if (obj === this.game.player) {
+            if (obj.gridX === 18 && (obj.gridY === 15 || obj.gridY === 16)) {
+                // 컷신을 튼다
+                this.cutscene = true;
+                this.game.ui.showTheaterScreen(1);
+                this.game.stage.showPathHighlight = false;
+
+                this.game.player.changeVisualToDirection(DIRECTIONS.SE);
+
+                // 1초후에 대사를 하고 
+                setTimeout(() => {
+                    this.game.ui.showChatBallon(game.player, "이 게임에서 드디어 탈출이다. 집에가자", 4);
+                }, 500)
+                
+                
+                // 다시 1초후에 화면을 암전하고 엔딩크레딧을 보여준다
+                setTimeout(() => {
+                    const sprite = new PIXI.Sprite(PIXI.Texture.fromFrame("ending.png"));
+                    this.game.ui.addChild(sprite);
+                    sprite.alpha = 0;
+                    this.game.tweens.addTween(sprite, 1, { alpha: 1 }, 0, "easeIn", true);
+                }, 2000);
+
+
+                
+
+                // 플레이어의 이동을 멈춘다
+                // TODO : 기타게임 상태를 정리하여야 한다. 어떻게 할 지 고민하고 코드를 정리해보자.
+                return true;
+            }
         }
     }
 

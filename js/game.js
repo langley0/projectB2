@@ -75,7 +75,7 @@ class Game {
         // 플레이어가 어디에 위치 했는지 확인한다.
         // 플레이어 캐릭터를 만든다
         this.loadCharacter(() => {
-            this.player = new Engine.Character();
+            this.player = new Character();
             // 플레이어가 속한 스테이지 들어간다
             this.enterStage(playerInfo.stagePath, "explore");
         });
@@ -126,7 +126,8 @@ class Game {
             ["window_light.png", "assets/window_light.png"],
             ["torch_light.png", "assets/torch_light.png"],
             ["background.png", "assets/background.png"],
-            ["stealBar.png", "assets/mapdata/stealBar.png"]
+            ["stealBarL.png", "assets/mapdata/stealBarL.png"],
+            ["stealBarR.png", "assets/mapdata/stealBarR.png"],
         ];
 
         const loader = new PIXI.loaders.Loader();
@@ -165,12 +166,29 @@ class Game {
                 if (tiles.tiles) {
                     for (const data of tiles.tiles) {
                         const custom = {};
+                        // 애니메이션 정보 복사
+                        if (data.animation) {
+                            custom.animations = [];
+                            for(const anim of data.animation) {
+                                custom.animations.push({
+                                    duration: anim.duration,
+                                    textureName: prefix + anim.tileid + ".png",
+                                })
+                            }
+                        }
+                        // 커스텀 프라퍼티 복사
                         for( const property of data.properties) {
                             if (property.name === "movable") {
                                 custom.movable = property.value;
                             }
-                            if(property.name === "objectType") {
+                            else if(property.name === "objectType") {
                                 custom.objectType = property.value;
+                            } 
+                            else if (property.name === "tag") {
+                                custom.tags = property.value.split(';');
+                            }
+                            else if (property.name === "direction") {
+                                custom.direction = (property.value === "left") ? DIRECTIONS.SW : DIRECTIONS.SE;
                             }
                         }
                         customTileData[data.id + idStart] = custom;
@@ -209,7 +227,6 @@ class Game {
                         const tileId = layer.data[index];
 
                         // 90 도 회전시킨다.
-                        
                         if (layer.name === "Tiles") {
                             // 타일
                             stage.setGroundTile(x, y, tileId);

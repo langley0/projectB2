@@ -64,15 +64,15 @@ class Tile extends PIXI.Container {
         super();
         this.gridX = x;
         this.gridY = y;
-        this.setTexture(PIXI.Texture.fromFrame(options.textureName));
-        this.movable = options.movable || false;
-    }
 
-    setTexture(texture) {
+        // 스프라이트 정보를 출력한다
+        const texture = PIXI.Texture.fromFrame(options.textureName);
         const sprite = new PIXI.Sprite(texture);
         sprite.position.y = -texture.height;
         this.addChild(sprite);
+        this.tileTexture = sprite;
 
+        // 타일 영역에 대한 버텍스를 만든다
         const vertices = [
             [0, -TILE_HEIGHT/2],
             [TILE_WIDTH/2, -TILE_HEIGHT],
@@ -81,6 +81,8 @@ class Tile extends PIXI.Container {
         ];
         this.vertices = vertices;
 
+        // 하이라이트를 만든다
+        // TODO : 모든 타일에 대해서 하이라이트를 만들 필요가 있을까? 바닥타일만 하이라이트를 만들고 싶다
         this.highlightedOverlay = new PIXI.Graphics();
         this.highlightedOverlay.clear();
         this.highlightedOverlay.lineStyle(2, 0xFFFFFF, 1);
@@ -96,6 +98,13 @@ class Tile extends PIXI.Container {
 
         this.highlightedOverlay.visible = false;
         this.isHighlighted = false;
+        
+        this.movable = options.movable || false;
+    }
+
+    setTexture(texture) {
+        this.tileTexture.texture = texture;
+        this.tileTexture.position.y = -texture.height;
     } 
 
     // 어떻게 해야하냐.. 고민고민
@@ -212,10 +221,6 @@ class IsoMap extends PIXI.Container {
 
     generateTile(x, y, tileId) {
         const tileData = this.getTileData(tileId);
-        if(tileId === 270) {
-            console.log(tileData);
-        }
-
         let tile;
         if (tileData.objectType === "gate") {
             tile = new Gate(x, y, tileData);
@@ -380,10 +385,11 @@ class IsoMap extends PIXI.Container {
             if (target && target.isInteractive) {
                 this.interactTarget = target;
                 return true;
-            } else {
-                return false;
             }
-        }
+        } 
+
+        this.interactTarget = null;
+        return false;
     }
 
     moveObjThrough(obj, path) {
@@ -409,7 +415,7 @@ class IsoMap extends PIXI.Container {
         obj.currentPath = path;
         obj.currentPathStep = obj.currentPath.length - 1;
         obj.currentTargetTile = obj.currentPath[obj.currentPathStep];
-        obj.speedMagnitude = 1; // default speed
+        obj.speedMagnitude = 2;
 
         this.onObjMoveStepBegin(obj, obj.currentTargetTile.x, obj.currentTargetTile.y);
     }
@@ -439,8 +445,15 @@ class IsoMap extends PIXI.Container {
         obj.currentTargetTile = null;
         const pathEnded = (0 > obj.currentPathStep);
         this.moveEngine.removeMovable(obj);
+        let forceStop = false;
+
+        // 현재 지나고 있는 타일에 이벤트가 있는지 확인한다
+        // 하드코딩으로 이벤트를 지나게 한다
+        if (this.onTilePassing) {
+            forceStop = this.onTilePassing(obj);
+        }
         
-        if (!pathEnded) {
+        if (!pathEnded && !forceStop) {
             this.moveObjThrough(obj, obj.currentPath.slice(0, obj.currentPath.length-1));
         }
         else {
@@ -542,7 +555,7 @@ class IsoMap extends PIXI.Container {
                         // 충돌체크를 한다
                         const hit = hitTestRectangle(tile.getBounds(), obj.getBounds());
                         if (hit) {
-                            tile.alpha = 0.5;
+                            tile.alpha = 0.75;
                         }
                     }
                 }
@@ -1008,7 +1021,10 @@ class Gate extends Tile {
         super(x, y, tileData);
 
         // 철망을 붙인다
-        const base = PIXI.Texture.fromFrame("stealBar.png");
+        const base = (tileData.direction === DIRECTIONS.SW) ?
+                PIXI.Texture.fromFrame("stealBarL.png") : 
+                PIXI.Texture.fromFrame("stealBarR.png");
+
         this.base = base;
         this.bar1 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 0, base.width, 50)));
         this.bar2 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 50, base.width, 40)));
@@ -1018,7 +1034,12 @@ class Gate extends Tile {
         this.addChild(this.bar3);
 
         // 초기값을 설정할 수 있어야 한다
-        this.openRatio = 0;
+        this.openRatio = 1; // 기본으로 닫아놓는다
+        
+        // 열쇠로 열수 있는지 확인한다
+        if (tileData.tags && tileData.tags.indexOf("key") >= 0) {
+            this.needsKey = true;
+        }
     }
 
     set openRatio(value) {
@@ -1031,12 +1052,62 @@ class Gate extends Tile {
         this.bar3.position.y = this.bar1.position.y + 50 + this.bar2.height;
 
         this._openRatio = value;
+        this.duration = 0.5;
+    }
+
+    open(tweens) {
+        if (tweens) {
+            // 열쇠가 돌아가는 시간을 조금 벌어야 한다. 바로 열리면 뭔가 이상하다
+            tweens.addTween(this, this.duration, { openRatio: 0 }, 0.5, "easeInOut", true);
+        } else {
+            this.openRatio = 0;
+        }
+    }
+
+    close(tweens) {
+        if (tweens) {
+            
+            tweens.addTween(this, this.duration, { openRatio: 1 }, 0, "easeInOut", true);
+        } else {
+            this.openRatio = 1;
+        }
     }
 
     get openRatio() {
         return this._openRatio;
     }
 
+    get isOpened() {
+        return this._openRatio <= 0;
+    }
+
+    get isInteractive() {
+        if (this.isOpened) {
+            // 열린문은 인터랙트 하지 않아도 된다
+            // 다시 닫을 일이 있을까?
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    touch(game) {
+        // 다이얼로그를 연다
+        if (!this.isOpened) {
+            if (this.needsKey) {
+                // 열쇠를 가지고 있는지 검사한다
+                if (game.player.hasKey) {
+                    game.ui.showDialog("문을 열었다!");
+                    this.open(game.tweens);
+                } else {
+                    game.ui.showDialog("문을 열기 위해서 열쇠가 필요하다");
+                }
+                
+            } else {
+                game.ui.showDialog("이 문은 열리지 않을 것 같다");
+            }
+        }
+    }
     
 }   
 
@@ -1045,10 +1116,28 @@ class Chest extends Tile {
         super(x, y, tileData);
 
         this.isInteractive = true;
+        this.isOpened = false;
+
+        // 자신의 타일 모양을 바꾸어야 한다
+        this.animations = tileData.animations;
+    }
+
+    open() {
+        // TODO : 애니메이션을 플레이 해야한다
+        // 텍스쳐 변경
+        this.setTexture(PIXI.Texture.fromFrame(this.animations[1].textureName));
+
+        this.isOpened = true;
     }
 
     touch(game) {
-        // 상자를 연다
-        game.ui.showItemAcquire();
+        if (this.isOpened) {
+            game.ui.showDialog("상자는 비어있다.");
+        } else {
+            this.open();
+            game.ui.showItemAcquire();
+            // 열시 하드코딩
+            game.player.hasKey = true;
+        }
     }
 }

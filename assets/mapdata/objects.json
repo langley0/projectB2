@@ -84,6 +84,11 @@
                  "name":"objectType",
                  "type":"string",
                  "value":"chest"
+                }, 
+                {
+                 "name":"subType",
+                 "type":"string",
+                 "value":"1"
                 }]
         }, 
         {

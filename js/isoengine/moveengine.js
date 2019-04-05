@@ -59,7 +59,7 @@ class MoveEngine {
 
     setObject(o, x, y) {
         this.object = o;
-        this.speed = 3;
+        this.speed = 8;
 
         const px = this.engine.getTilePosXFor(x, y);
         const py = this.engine.getTilePosYFor(x, y);

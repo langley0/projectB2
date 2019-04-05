@@ -22,10 +22,26 @@
         <script src="js/game.js"></script>
         <script src="js/ui.js"></script>
         <style>
+            canvas {
+                display: block;
+                margin: 0 auto;
+            }
+            .project_header {
+                text-align: center;
+            }
+            .project_header h1 {
+                color: #ffffff;
+                font-size: 30px;
+                line-height: 1;
+                margin: 40px 0;
+            }
         </style>
       
     </head>
     <body>
+        <div class="project_header">
+            <h1>BEL - H5 게임 데모</h1>
+        </div>
         <script>
 
             // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
@@ -40,6 +56,7 @@
                 ["item3.png", "assets/items/img3.png"],
                 ["chatballon.png", "assets/ui/chatballon.png"],
                 ["chatballon_comma.png", "assets/ui/chatballon_comma.png"],
+                ["ending.png", "assets/ending.png"]
 
             ], () => {
                 const ui = new UI(game);
