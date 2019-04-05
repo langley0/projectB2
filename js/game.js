@@ -1,12 +1,12 @@
 class Game {
-    constructor(width, height) {
+    constructor(pixi) {
+
+        const width = pixi.renderer.width;
+        const height = pixi.renderer.height;
 
         this.screenWidth = width;
         this.screenHeight = height;
-
-        const pixi = new PIXI.Application(width, height, { backgroundColor : 0x6BACDE, forceCanvas: true });
-        document.body.appendChild(pixi.view);
-        this.pixi = pixi;
+        
 
         // 렌더링 레이어를 설정한다
         this.background = new PIXI.Container();

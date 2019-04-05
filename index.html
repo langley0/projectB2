@@ -43,52 +43,77 @@
             <h1>BEL - H5 게임 데모</h1>
         </div>
         <script>
+            const pixi = new PIXI.Application(980, 500  , { backgroundColor : 0x6BACDE, forceCanvas: true });
+            document.body.appendChild(pixi.view);
 
-            // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
-            // 로딩 속도를 최적화 하기 위해서
-            // 일단은 모든 데이터를 다 넣도록 하자 (알아서 캐싱된다)
-            
-            const game = new Game(800, 600);
-            game.preload([
-                ["dialog.png", "assets/dialog.png"],
-                ["dialogtitle.png", "assets/dialogtitle.png"],
-                ["theater.png", "assets/theater.png"],
-                ["item3.png", "assets/items/img3.png"],
-                ["chatballon.png", "assets/ui/chatballon.png"],
-                ["chatballon_comma.png", "assets/ui/chatballon_comma.png"],
-                ["ending.png", "assets/ending.png"]
+            // 오프닝을 준비한다
+            const loader = new PIXI.loaders.Loader();
+            loader.add('opening.png', 'assets/opening.png');
+            loader.add('border.png', 'assets/border.png');
+            loader.load((_,resources) => {
+                // 화면을 그린다
+                // 버튼을 클릭하면 게임을 시작한다
+                const sprite = new PIXI.Sprite(PIXI.Texture.fromFrame('opening.png'))
+                sprite.interactive = true;
+                pixi.stage.addChild(sprite);
+                sprite.mouseup = () => {
+                    gameStart();
+                };
 
-            ], () => {
-                const ui = new UI(game);
-                game.ui = ui;
-
-                game.start({ stagePath: 'assets/mapdata/map.json' });
-                const game_update = () => {
-                    game.update();
-                    ui.update();
-                    requestAnimationFrame(game_update);
-                }
-                game_update();
-
-
-                let toggle = true;
-
-                window.addEventListener("keydown", (e) => {
-                    if (e.keyCode === 66) {
-                        // 스테이지를 변경한다
-                        toggle = !toggle;
-                        if (toggle) {
-                            game.enterStage('assets/mapdata/map.json', "explore");
-                        } else {
-                            game.enterStage('assets/mapdata/map2.json', "battle");
-                        }
-                    } else if (e.keyCode  === 67) {
-                        //ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
-                        //ui.showItemAcquire();
-                        ui.showChatBallon(game.player, "테스트");
-                    } 
-                }, true);
+                pixi.stage.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("border.png")));
             });
+
+
+            function gameStart() {
+                // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
+                // 로딩 속도를 최적화 하기 위해서
+                // 일단은 모든 데이터를 다 넣도록 하자 (알아서 캐싱된다)
+
+                pixi.stage.removeChildren();
+                const game = new Game(pixi);
+                pixi.stage.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("border.png")));
+
+                game.preload([
+                    ["dialog.png", "assets/dialog.png"],
+                    ["dialogtitle.png", "assets/dialogtitle.png"],
+                    ["theater.png", "assets/theater.png"],
+                    ["item3.png", "assets/items/img3.png"],
+                    ["chatballon.png", "assets/ui/chatballon.png"],
+                    ["chatballon_comma.png", "assets/ui/chatballon_comma.png"],
+                    ["ending.png", "assets/ending.png"]
+
+                ], () => {
+                    const ui = new UI(game);
+                    game.ui = ui;
+
+                    game.start({ stagePath: 'assets/mapdata/map.json' });
+                    const game_update = () => {
+                        game.update();
+                        ui.update();
+                        requestAnimationFrame(game_update);
+                    }
+                    game_update();
+
+
+                    let toggle = true;
+
+                    window.addEventListener("keydown", (e) => {
+                        if (e.keyCode === 66) {
+                            // 스테이지를 변경한다
+                            toggle = !toggle;
+                            if (toggle) {
+                                game.enterStage('assets/mapdata/map.json', "explore");
+                            } else {
+                                game.enterStage('assets/mapdata/map2.json', "battle");
+                            }
+                        } else if (e.keyCode  === 67) {
+                            //ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
+                            //ui.showItemAcquire();
+                            ui.showChatBallon(game.player, "테스트");
+                        } 
+                    }, true);
+                });
+            }
         </script>
     </body>
 </html>
