@@ -1138,6 +1138,8 @@ class Chest extends Tile {
             game.ui.showItemAcquire();
             // 열시 하드코딩
             game.player.hasKey = true;
+            // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1번이 열쇠
+            game.player.inventory.addItem(1);
         }
     }
 }

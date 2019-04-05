@@ -75,7 +75,7 @@ class Game {
         // 플레이어가 어디에 위치 했는지 확인한다.
         // 플레이어 캐릭터를 만든다
         this.loadCharacter(() => {
-            this.player = new Character();
+            this.player = new Player();
             // 플레이어가 속한 스테이지 들어간다
             this.enterStage(playerInfo.stagePath, "explore");
         });
