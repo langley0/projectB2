@@ -1096,9 +1096,12 @@ class Gate extends Tile {
         if (!this.isOpened) {
             if (this.needsKey) {
                 // 열쇠를 가지고 있는지 검사한다
-                if (game.player.hasKey) {
+                const keyItem = game.player.inventory.getItemByType(1);
+                if (keyItem) {
                     game.ui.showDialog("문을 열었다!");
                     this.open(game.tweens);
+                    // 열쇠를 파괴한다
+                    game.player.inventory.deleteItem(keyItem.itemId);
                 } else {
                     game.ui.showDialog("문을 열기 위해서 열쇠가 필요하다");
                 }
@@ -1136,10 +1139,8 @@ class Chest extends Tile {
         } else {
             this.open();
             game.ui.showItemAcquire();
-            // 열시 하드코딩
-            game.player.hasKey = true;
             // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1번이 열쇠
-            game.player.inventory.addItem(1);
+            game.player.inventory.addItem(1, 1);
         }
     }
 }
