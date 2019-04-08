@@ -34,6 +34,12 @@ class Inventory {
             }
         }
     }
+
+    eachItem(callback) {
+        for(const item of this.items) {
+            callback(item);
+        }
+    }
 }
 
 class Item {

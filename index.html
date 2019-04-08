@@ -79,9 +79,11 @@
                     ["dialogtitle.png", "assets/dialogtitle.png"],
                     ["theater.png", "assets/theater.png"],
                     ["item3.png", "assets/items/img3.png"],
+                    ["key.png", "assets/items/key.png"],
                     ["chatballon.png", "assets/ui/chatballon.png"],
                     ["chatballon_comma.png", "assets/ui/chatballon_comma.png"],
-                    ["ending.png", "assets/ending.png"]
+                    ["ending.png", "assets/ending.png"],
+                    ["inventory.png", "assets/inventory.png"],
 
                 ], () => {
                     const ui = new UI(game);
@@ -110,7 +112,13 @@
                         } else if (e.keyCode  === 67) {
                             //ui.showDialog("테스트 다이얼로그입니다. 클릭하면 꺼집니다");
                             //ui.showItemAcquire();
-                            ui.showChatBallon(game.player, "테스트");
+                            //ui.showChatBallon(game.player, "테스트");
+                            if (toggle) {
+                                ui.showInventory();
+                            } else {
+                                ui.hideInventory();
+                            }
+                            toggle = !toggle;
                         } 
                     }, true);
                 });

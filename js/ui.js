@@ -191,6 +191,42 @@ class StageTitle extends PIXI.Container {
     }
 }
 
+class InventoryUI extends PIXI.Container {
+    constructor(ui) {
+        super();
+
+        const base = new PIXI.Sprite(PIXI.Texture.fromFrame("inventory.png"));
+        // 위치는 일단 가운데 ...
+        base.anchor.x = 0.5;
+        base.anchor.y = 0.5;
+        base.position.x = ui.screenWidth / 2;
+        base.position.y = ui.screenHeight / 2;
+        this.addChild(base);
+
+        this.base = base;
+    }
+
+    update(playerInventory) {
+        this.base.removeChildren();
+        // 인벤토리에 있는 아이템을 화면에 표시한다
+        let index = 0;
+        const inventoryWidth = 4;
+        playerInventory.eachItem((item) => {
+            // 열쇠를 찍는다
+            const x = index % inventoryWidth;
+            const y = Math.floor(index / inventoryWidth);
+            
+            const itemSpr = new PIXI.Sprite(PIXI.Texture.fromFrame("key.png"));
+            itemSpr.position.x = x * 85 + 17 - this.base.width/2;
+            itemSpr.position.y = y * 85 + 60 - this.base.height/2;
+
+            this.base.addChild(itemSpr);
+
+            ++index;
+        });
+    }
+}
+
 class UI extends PIXI.Container {
     constructor(game) {
         super();
@@ -230,7 +266,10 @@ class UI extends PIXI.Container {
         this.addChild(this.itemAcquire);
 
         this.chatBallons = [];
-        
+
+        this.inventory = new InventoryUI(this);
+        this.addChild(this.inventory);
+        this.inventory.visible = false;
     }
     
     showDialog(text) {
@@ -315,5 +354,14 @@ class UI extends PIXI.Container {
         for (const chat of this.chatBallons) {
             chat.updatePosition();
         }
+    }
+
+    showInventory() {
+        this.inventory.visible = true;
+        this.inventory.update(this.game.player.inventory);
+    }
+
+    hideInventory() {
+        this.inventory.visible = false;
     }
 }
