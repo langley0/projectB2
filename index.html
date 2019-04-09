@@ -78,12 +78,14 @@
                     ["dialog.png", "assets/dialog.png"],
                     ["dialogtitle.png", "assets/dialogtitle.png"],
                     ["theater.png", "assets/theater.png"],
-                    ["item3.png", "assets/items/img3.png"],
-                    ["key.png", "assets/items/key.png"],
+                    ["item3.png", "assets/items/item3.png"],
                     ["chatballon.png", "assets/ui/chatballon.png"],
                     ["chatballon_comma.png", "assets/ui/chatballon_comma.png"],
                     ["ending.png", "assets/ending.png"],
                     ["inventory.png", "assets/inventory.png"],
+                    ["combine.png", "assets/combine.png"],
+                    ["combine_listitem.png", "assets/combine_listitem.png"],
+                    ["combine_button.png", "assets/combine_button.png"],
 
                 ], () => {
                     const ui = new UI(game);
@@ -114,9 +116,9 @@
                             //ui.showItemAcquire();
                             //ui.showChatBallon(game.player, "테스트");
                             if (toggle) {
-                                ui.showInventory();
+                                ui.showCombine();
                             } else {
-                                ui.hideInventory();
+                                ui.hideCombine();
                             }
                             toggle = !toggle;
                         } 

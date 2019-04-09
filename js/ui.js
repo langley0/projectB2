@@ -18,6 +18,8 @@ class BaseModal extends PIXI.Container {
         
         this.addChild(background);
         this.addChild(plane);
+
+        this.onclose = null;
     }
 
     addTitle(text) {
@@ -50,6 +52,10 @@ class BaseModal extends PIXI.Container {
         
         // 창을 닫는다
         this.visible = false;
+
+        if (this.onclose) {
+            this.onclose();
+        }
     }
 }
 
@@ -216,7 +222,7 @@ class InventoryUI extends PIXI.Container {
             const x = index % inventoryWidth;
             const y = Math.floor(index / inventoryWidth);
             
-            const itemSpr = new PIXI.Sprite(PIXI.Texture.fromFrame("key.png"));
+            const itemSpr = new PIXI.Sprite(PIXI.Texture.fromFrame("item3.png"));
             itemSpr.position.x = x * 85 + 17 - this.base.width/2;
             itemSpr.position.y = y * 85 + 60 - this.base.height/2;
 
@@ -224,6 +230,137 @@ class InventoryUI extends PIXI.Container {
 
             ++index;
         });
+    }
+}
+
+class CombineUI extends PIXI.Container {
+    constructor(ui) {
+        super();
+
+        // 투명 백그라운드를 만들어서 클릭하면 닫히게 한다
+        const background = new PIXI.Sprite(PIXI.Texture.WHITE);
+        background.alpha = 0;
+        background.width = ui.screenWidth;
+        background.height = ui.screenHeight;
+        background.interactive = true; // 클릭을 방지한다
+        background.mouseup = (event) => { 
+            event.stopped = true;
+            this.visible = false; 
+        };
+        this.addChild(background);
+
+
+        const base = new PIXI.Sprite(PIXI.Texture.fromFrame("combine.png"));
+        // 위치는 일단 가운데 ...
+        base.anchor.x = 0.5;
+        base.anchor.y = 0.5;
+        base.position.x = ui.screenWidth / 2;
+        base.position.y = ui.screenHeight / 2;
+        base.interactive = true;
+        base.mouseup = (evt) => { evt.stopped = true; };
+        this.addChild(base);
+
+      
+        // 조합하기 버튼을 그린다. 그리고 tint 를 사용해서 비활성화한다. 
+        const button = new PIXI.Sprite(PIXI.Texture.fromFrame("combine_button.png"));
+        button.tint = 0x404040;
+        button.position.x = -105;
+        button.position.y = 115;
+        button.mouseup = (event) => {
+            event.stopped = true;
+            // 조합이 완성되면 버튼을 클릭해서 조합을 가능하게 한다
+            // 아이템이 인벤토리에 있으면 지우고 새로운 아이템을 생성하고 팝업을 알린다
+            const itemA = ui.game.player.inventory.getItemByType(1);
+            const itemB = ui.game.player.inventory.getItemByType(2);
+            if (itemA && itemB) {
+                ui.game.player.inventory.deleteItem(itemA.itemId);
+                ui.game.player.inventory.deleteItem(itemB.itemId);
+
+                // 12번을 제거하고 3번을 추가한다
+                ui.game.player.inventory.addItem(100, 3);
+                this.visible = false;
+                ui.showItemAcquire(3, () => {
+                    ui.showDialog("잠긴 출구 문을 열 수 있게 되었다");
+                });
+            }
+        };
+        base.addChild(button)
+
+        this.base = base;
+        this.button = button;
+    }
+
+    update(game) {
+        this.showRecipe(game);
+    }
+
+    showRecipe(game) {
+        let clicked = false;
+        this.base.removeChildren();
+        this.base.addChild(this.button); // 버튼은 달아야 한다
+
+      
+
+        // 레시피를 화면 그린다.
+        const recipe = new PIXI.Sprite(PIXI.Texture.fromFrame("combine_listitem.png"));
+        recipe.position.x = 80;
+        recipe.position.y = -108;
+        const style = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'center' });
+        const text = new PIXI.Text("출구 열쇠", style);
+        recipe.addChild(text);
+
+        text.position.x = 15;
+        text.position.y = (recipe.height - text.height) / 2;
+
+        this.base.addChild(recipe);
+
+        recipe.interactive = true;
+        recipe.mouseup = (event) => {
+            event.stopped = true;
+
+            // 마우스 클릭했을때의 이벤트
+            // 일단 하드코딩. 여기서 인벤토리를 검사해서 각 레시피를 재표를 채운다
+            if (!clicked) {
+                const itemA = game.player.inventory.getItemByType(1);
+                const itemB = game.player.inventory.getItemByType(2);
+                // 아이템 1번과 2번이 존재하면 흰색 아니면 회색으로 표시한다
+                const colorA = itemA ? 0xffffff : 0x808080;
+                const colorB = itemB ? 0xffffff : 0x808080;
+
+                const styleA = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 16, fill : colorA, align : 'center' });
+                const textA = new PIXI.Text("열쇠 조각 A", styleA);
+                textA.position.x = -280;
+                textA.position.y = -96;
+
+                const styleB = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 16, fill : colorB, align : 'center' });
+                const textB = new PIXI.Text("열쇠 조각 B", styleB);
+                textB.position.x = -280;
+                textB.position.y = -23;
+
+                const styleC = new PIXI.TextStyle({fontFamily : 'Arial', fontSize: 16, fill : 0x40FF40, align : 'center' });
+                const textC = new PIXI.Text("출구 열쇠", styleC);
+                textC.position.x = -280;
+                textC.position.y = 72;
+
+
+                // 각각의 레시피를 화면에 출력한다
+                this.base.addChild(textA);
+                this.base.addChild(textB);
+                this.base.addChild(textC);
+
+                // 모든 아이템이 준비되면 조합버튼을 활성화한다
+                if (itemA && itemB) {
+                    this.button.tint = 0xffffff;
+                    this.button.interactive = true;
+                } else {
+                    this.button.tint = 0x404040;
+                    this.button.interactive = false;
+                }
+
+                clicked = true;
+            } 
+        }
+        
     }
 }
 
@@ -246,30 +383,15 @@ class UI extends PIXI.Container {
         this.theater.visible =false;
         this.addChild(this.theater);
 
-        this.itemAcquire = new BaseModal(this, 400, 300);
-        this.itemAcquire.addTitle("아이템 획득");
-        const itemSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("item3.png"));
-        itemSprite.anchor.x = 0.5;
-        itemSprite.anchor.y = 0.5;
-        itemSprite.position.x = this.itemAcquire.width / 2;
-        itemSprite.position.y = this.itemAcquire.height / 2 - 20;
-        const itemText = new PIXI.Text("개발용으로 만들어진 아이템.\n아직 인벤토리가 없는 것은 비밀이다.",{fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'center', wordWrap: true, wordWrapWidth: this.itemAcquire.width /2 });
-        itemText.anchor.x = 0.5;
-        itemText.anchor.y = 0.5;
-        itemText.position.x = this.itemAcquire.width / 2;
-        itemText.position.y = itemSprite.position.y + itemSprite.height / 2 + 32;
-        this.itemAcquire.addChild(itemText);
-
-
-        this.itemAcquire.addChild(itemSprite);
-        this.itemAcquire.visible = false;
-        this.addChild(this.itemAcquire);
-
         this.chatBallons = [];
 
         this.inventory = new InventoryUI(this);
         this.addChild(this.inventory);
         this.inventory.visible = false;
+
+        this.combine = new CombineUI(this);
+        this.addChild(this.combine);
+        this.combine.visible = false;
     }
     
     showDialog(text) {
@@ -329,8 +451,43 @@ class UI extends PIXI.Container {
     }
 
 
-    showItemAcquire() {
-        this.itemAcquire.visible = true;
+    showItemAcquire(itemId, closeCallback) {
+        
+        const itemAcquire = new BaseModal(this, 400, 300);
+        itemAcquire.addTitle("아이템 획득");
+        itemAcquire.onclose = () => {
+            // 자신을 부모로부터 제거한다
+            this.removeChild(itemAcquire);
+            
+            if (closeCallback) {
+                closeCallback();
+            }
+        }
+        this.addChild(itemAcquire);
+        
+        const itemSprite = new PIXI.Sprite(PIXI.Texture.fromFrame("item3.png"));
+        itemSprite.anchor.x = 0.5;
+        itemSprite.anchor.y = 0.5;
+        itemSprite.position.x = itemAcquire.width / 2;
+        itemSprite.position.y = itemAcquire.height / 2 - 20;
+        itemAcquire.addChild(itemSprite);
+        
+        
+        let acquireText;
+        if (itemId === 1) {
+            acquireText = "[열쇠조각A]를 얻었다";
+        } else if (itemId === 2) {
+            acquireText = "[열쇠조각B]를 얻었다";
+        } else if (itemId === 3) {
+            acquireText = "[철문열쇠]를 얻었다";
+        }
+
+        const itemText = new PIXI.Text(acquireText ,{fontFamily : 'Arial', fontSize: 16, fill : 0xffffff, align : 'center', wordWrap: true, wordWrapWidth: itemAcquire.width /2 });
+        itemText.anchor.x = 0.5;
+        itemText.anchor.y = 0.5;
+        itemText.position.x = itemAcquire.width / 2;
+        itemText.position.y = itemSprite.position.y + itemSprite.height / 2 + 32;
+        itemAcquire.addChild(itemText);
     }
 
     showChatBallon(character, text, duration) {
@@ -363,5 +520,14 @@ class UI extends PIXI.Container {
 
     hideInventory() {
         this.inventory.visible = false;
+    }
+
+    showCombine() {
+        this.combine.visible = true;
+        this.combine.update(this.game);
+    }
+
+    hideCombine() {
+        this.combine.visible = false;
     }
 }

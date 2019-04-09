@@ -1096,7 +1096,7 @@ class Gate extends Tile {
         if (!this.isOpened) {
             if (this.needsKey) {
                 // 열쇠를 가지고 있는지 검사한다
-                const keyItem = game.player.inventory.getItemByType(1);
+                const keyItem = game.player.inventory.getItemByType(3);
                 if (keyItem) {
                     game.ui.showDialog("문을 열었다!");
                     this.open(game.tweens);
@@ -1138,9 +1138,17 @@ class Chest extends Tile {
             game.ui.showDialog("상자는 비어있다.");
         } else {
             this.open();
-            game.ui.showItemAcquire();
             // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1번이 열쇠
             game.player.inventory.addItem(1, 1);
+            // 추가로 2번도 같이 준다
+            game.player.inventory.addItem(2, 2);
+            game.ui.showItemAcquire(1, () => {
+                // TODO:  모달 클로즈 이벤트를 만들어야 한다
+                // 트리거를 만들어야 한다!!
+                game.ui.showDialog("열쇠 조각을 모았다\n어딘가에서 조합을 해서 완전한 열쇠로 만들어야 한다");
+            });
+
+            
         }
     }
 }
