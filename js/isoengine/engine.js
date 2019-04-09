@@ -1110,7 +1110,7 @@ class Gate extends Tile {
                 }
                 
             } else {
-                game.ui.showDialog("이 문은 열리지 않을 것 같다");
+                game.ui.showDialog("이 문은 열리지 않을 것 같다\n\n다른 문을 찾아보자");
             }
         }
     }
@@ -1141,14 +1141,27 @@ class Chest extends Tile {
             game.ui.showDialog("상자는 비어있다.");
         } else {
             this.open();
-            // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1번이 열쇠
-            game.player.inventory.addItem(1, 1);
-            // 추가로 2번도 같이 준다
-            game.player.inventory.addItem(2, 2);
-            game.ui.showItemAcquire(1, () => {
+            // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1,2번이 열쇠조각, 3번이 열쇠이다
+            let itemType;
+            if (!game.player.inventory.getItemByType(1))  {
+                game.player.inventory.addItem(1, 1);
+                itemType = 1;
+            } else if (!game.player.inventory.getItemByType(2))  {
+                game.player.inventory.addItem(2, 2);
+                itemType = 2;
+            }
+            
+            game.ui.showItemAcquire(itemType, () => {
                 // TODO:  모달 클로즈 이벤트를 만들어야 한다
                 // 트리거를 만들어야 한다!!
-                game.ui.showDialog("열쇠 조각을 모았다\n어딘가에서 조합을 해서 완전한 열쇠로 만들어야 한다");
+
+                if (game.player.inventory.getItemByType(1) && 
+                    game.player.inventory.getItemByType(2)) {
+
+                    game.ui.showChatBallon(game.player, "열쇠조각은 모두 모았어!!\n아까 모루를 본 것 같은데 \n그쪽으로 가보자", 4);
+                } else {
+                    game.ui.showChatBallon(game.player, "열쇠조각이다! 나머지 조각도 어딘가 있을거야", 4);
+                }
             });
 
             
@@ -1166,7 +1179,8 @@ class Anvil extends Tile {
 
     touch(game) {
         if (this.firstTouch) {
-            game.ui.showDialog("모루를 발견하였다\n새로운 아이템을 조합할 수 있게 되었다", () => {
+            this.firstTouch = false;
+            game.ui.showDialog("모루를 발견하였다\n\n새로운 아이템을 조합할 수 있게 되었다", () => {
                 game.ui.showCombine();
             });
         } else {

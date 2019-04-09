@@ -286,7 +286,7 @@ class CombineUI extends PIXI.Container {
                 ui.game.player.inventory.addItem(100, 3);
                 this.visible = false;
                 ui.showItemAcquire(3, () => {
-                    ui.showChatBallon(ui.game.player, "열쇠다! 잠긴 문을 열고 어서 빠져나가자");
+                    ui.showDialog("잠긴 문을 열 수 있게 되었다");
                 });
             }
         };
