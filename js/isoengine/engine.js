@@ -226,7 +226,9 @@ class IsoMap extends PIXI.Container {
             tile = new Gate(x, y, tileData);
         } else if (tileData.objectType === "chest") {
             tile = new Chest(x, y, tileData);
-        } 
+        }  else if (tileData.objectType === "anvil") {
+            tile = new Anvil(x, y, tileData);
+        }
         else {
             tile = new Tile(x, y, tileData);
         }
@@ -362,17 +364,13 @@ class IsoMap extends PIXI.Container {
 
             const path  = this.pathFinder.solve(startX, startY, x, y);
             if (path) {
-                if (this.checkInteractionTarget(path)) {
-                    path.splice(0, 1);
-                }
+                this.checkInteractionTarget(path);
                 character.newPath = path;
             }
         } else {
             const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
             if (path) {
-                if (this.checkInteractionTarget(path)) {
-                    path.splice(0, 1);
-                }
+                this.checkInteractionTarget(path);
                 this.moveObjThrough(character, path);
             }
         }
@@ -451,6 +449,11 @@ class IsoMap extends PIXI.Container {
         // 하드코딩으로 이벤트를 지나게 한다
         if (this.onTilePassing) {
             forceStop = this.onTilePassing(obj);
+        }
+
+        // 만약에 인터랙티브 타겟이 있고, 길이가 하나 남았으면 정지시킨다.
+        if (this.interactTarget && obj.currentPathStep === 0) {
+            forceStop = true;
         }
         
         if (!pathEnded && !forceStop) {
@@ -1149,6 +1152,25 @@ class Chest extends Tile {
             });
 
             
+        }
+    }
+}
+
+class Anvil extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        this.isInteractive = true;
+        this.firstTouch = true;
+    }
+
+    touch(game) {
+        if (this.firstTouch) {
+            game.ui.showDialog("모루를 발견하였다\n새로운 아이템을 조합할 수 있게 되었다", () => {
+                game.ui.showCombine();
+            });
+        } else {
+            game.ui.showCombine();
         }
     }
 }

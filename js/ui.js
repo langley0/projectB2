@@ -133,6 +133,8 @@ class Dialog extends PIXI.Container {
         
         this.addChild(background);
         this.addChild(plane);
+
+        this.onclose = null;
     }
 
     onClick(event) {
@@ -141,6 +143,10 @@ class Dialog extends PIXI.Container {
         
         // 창을 닫는다
         this.visible = false;
+
+        if (this.onclose) {
+            this.onclose();
+        }
     }
 
     setText(text) {
@@ -280,7 +286,7 @@ class CombineUI extends PIXI.Container {
                 ui.game.player.inventory.addItem(100, 3);
                 this.visible = false;
                 ui.showItemAcquire(3, () => {
-                    ui.showDialog("잠긴 출구 문을 열 수 있게 되었다");
+                    ui.showChatBallon(ui.game.player, "열쇠다! 잠긴 문을 열고 어서 빠져나가자");
                 });
             }
         };
@@ -394,9 +400,10 @@ class UI extends PIXI.Container {
         this.combine.visible = false;
     }
     
-    showDialog(text) {
+    showDialog(text, closeCallback) {
         this.dialog.setText(text);
         this.dialog.visible = true;
+        this.dialog.onclose = closeCallback;
     }
 
     hideDialog() {

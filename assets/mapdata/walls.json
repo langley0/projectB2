@@ -64,6 +64,20 @@
                 }]
         }, 
         {
+         "id":35,
+         "properties":[
+                {
+                 "name":"objectType",
+                 "type":"string",
+                 "value":"anvil"
+
+                }, {
+                     "name":"movable",
+                     "type":"bool",
+                     "value":true
+              }]
+        }, 
+        {
          "id":38,
          "properties":[
                 {
