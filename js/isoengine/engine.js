@@ -675,56 +675,15 @@ class Character extends PIXI.Container {
         // 스프라이트를 읽어와서 애니메이션을 시킨다.
         // 아이들 애니메이션을 읽어온다
         this.animations = {};
-        
-        this.animations.idle_nw = { textures: loadAniTexture("idle_up", 2), flipX: false };
-        this.animations.idle_sw = { textures: loadAniTexture("idle", 2), flipX: false };
-        this.animations.idle_ne = { textures: this.animations.idle_nw.textures, flipX: true };
-        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
-
-        this.animations.walk_nw = { textures: loadAniTexture("walk_up", 8), flipX: false };
-        this.animations.walk_sw = { textures: loadAniTexture("walk_down", 8), flipX: false };
-        this.animations.walk_ne = { textures: this.animations.walk_nw.textures, flipX: true };
-        this.animations.walk_se = { textures: this.animations.walk_sw.textures, flipX: true };
-
-        this.animations.attack_nw = { textures: loadAniTexture("atk_up", 10), flipX: false };
-        this.animations.attack_sw = { textures: loadAniTexture("atk_left", 10), flipX: false };
-        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
-        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
-
-        // Stat Character 상속받는 Knight 클래스로 빼야할 것들..
-        // balance가 1에 가까울수록 좋은것. (확정적 데미지)
-        // (balance)% + Math.random() * (1 - balance)%
-        this.hp = 100;
-        this.maxHp = 100;
-        this.damage = 50;
-        this.balance = 0.8;
-        this.ciriticalRate = 0.4;
-        // critical로 인한 추가 데미지 계수.
-        this.ciriticalBalance = 1.5;
-        // 물리 방어계수 %
-        this.defense = 0.3;
 
         // 그림자를 추가한다
         const shadow = new PIXI.Sprite(PIXI.Texture.fromFrame("shadow.png"));
         shadow.position.y = -shadow.height;
         this.container.addChild(shadow);
 
-        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
-        anim.animationSpeed = 0.1;
-        anim.play();
-        anim.position.y = -48; // 하드코딩
-        this.anim = anim;
-        this.container.addChild(anim);
-
         const hpHolder = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar.png"));
         const hpBar = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar_r.png"));
 
-        // 하드코딩
-        hpHolder.position.y = -this.anim.height - 8;
-        hpHolder.position.x = 16 - hpHolder.width / 2;
-
-        hpBar.position.y = -this.anim.height - 7;
-        hpBar.position.x = 16 - hpHolder.width / 2 + 1;
         this.hpHolder = hpHolder;
         this.hpBar = hpBar;
         this.hpHolder.alpha = 0;
@@ -827,20 +786,55 @@ class Character extends PIXI.Container {
 class Knight extends Character {
     constructor() {
         super();
-        // 스프라이트 로드같은것 캐릭터마다 다를테고.. 초상화 같은것도 있을테고.. 음 
+        this.removeChild(this.container);
 
+        // 스프라이트 로드같은것 캐릭터마다 다를테고.. 초상화 같은것도 있을테고.. 음 
         this.name = "Hector";
+
+        // Battle UI
         this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player1_active.png"));
         this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill01_on.png"));
         this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill02.png"));
 
+        // Stat
         this.hp = 300;
         this.maxHp = 300;
-        this.damage = 500;
+        this.damage = 120;
         this.balance = 0.85;
         this.ciriticalRate = 0.3;
         this.ciriticalBalance = 1.7;
         this.defense = 0.5;
+        
+        // Animation
+        this.animations.idle_nw = { textures: loadAniTexture("idle_nw", 2), flipX: false };
+        this.animations.idle_sw = { textures: loadAniTexture("idle_sw", 2), flipX: false };
+        this.animations.idle_ne = { textures: this.animations.idle_nw.textures, flipX: true };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.walk_nw = { textures: loadAniTexture("walk_nw", 8), flipX: false };
+        this.animations.walk_sw = { textures: loadAniTexture("walk_sw", 8), flipX: false };
+        this.animations.walk_ne = { textures: this.animations.walk_nw.textures, flipX: true };
+        this.animations.walk_se = { textures: this.animations.walk_sw.textures, flipX: true };
+
+        this.animations.attack_nw = { textures: loadAniTexture("atk_nw", 10), flipX: false };
+        this.animations.attack_sw = { textures: loadAniTexture("atk_sw", 10), flipX: false };
+        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.y = -48; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
     }
 }
 Engine.Knight = Knight;
@@ -848,6 +842,7 @@ Engine.Knight = Knight;
 class Wizard extends Character {
     constructor() {
         super();
+        this.removeChild(this.container);
 
         this.name = "Elid";
         this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player2_active.png"));
@@ -856,11 +851,37 @@ class Wizard extends Character {
 
         this.hp = 150;
         this.maxHp = 150;
-        this.damage = 500;
+        this.damage = 120;
         this.balance = 0.7;
         this.ciriticalRate = 0.2;
         this.ciriticalBalance = 1.5;
         this.defense = 0.4;
+        
+        // Animation
+        this.animations.idle_nw = { textures: loadAniTexture("elid_idle_nw", 1), flipX: false };
+        this.animations.idle_sw = { textures: loadAniTexture("elid_idle_sw", 1), flipX: false };
+        this.animations.idle_ne = { textures: this.animations.idle_nw.textures, flipX: true };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.attack_nw = { textures: loadAniTexture("elid_atk_nw", 7), flipX: false };
+        this.animations.attack_sw = { textures: loadAniTexture("elid_atk_sw", 7), flipX: false };
+        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.y = -48; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
     }
 }
 Engine.Wizard = Wizard;
@@ -868,6 +889,7 @@ Engine.Wizard = Wizard;
 class Archer extends Character {
     constructor() {
         super();
+        this.removeChild(this.container);
 
         this.name = "Miluda";
         this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player3_active.png"));
@@ -876,11 +898,37 @@ class Archer extends Character {
 
         this.hp = 100;
         this.maxHp = 100;
-        this.damage = 500;
+        this.damage = 120;
         this.balance = 0.8;
         this.ciriticalRate = 0.5;
         this.ciriticalBalance = 2;
         this.defense = 0.3;
+        
+        // Animation
+        this.animations.idle_nw = { textures: loadAniTexture("miluda_idle_nw", 1), flipX: false };
+        this.animations.idle_sw = { textures: loadAniTexture("miluda_idle_sw", 1), flipX: false };
+        this.animations.idle_ne = { textures: this.animations.idle_nw.textures, flipX: true };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.attack_nw = { textures: loadAniTexture("miluda_atk_nw", 8), flipX: false };
+        this.animations.attack_sw = { textures: loadAniTexture("miluda_atk_sw", 8), flipX: false };
+        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.y = -48; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
     }
 }
 Engine.Archer = Archer;
@@ -888,6 +936,7 @@ Engine.Archer = Archer;
 class Troll extends Character {
     constructor() {
         super();
+        this.removeChild(this.container);
 
         this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster01_active.png"));
 
@@ -898,6 +947,42 @@ class Troll extends Character {
         this.ciriticalRate = 0.2;
         this.ciriticalBalance = 1.2;
         this.defense = 0.5;
+        
+        // Animation
+        this.animations.idle_sw = { textures: loadAniTexture("monster2-idle_sw", 1), flipX: false };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.attack_sw = { textures: loadAniTexture("monster2-atk_sw", 6), flipX: false };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.x = -9
+        anim.position.y = -55; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
+    }
+
+    // Troll 이놈 에니메이션 좌표가 맞지않아서 임의 세팅
+    setAnimation(name) {
+        const ani = this.animations[name];
+        if (ani && this.anim.name !== name) {
+            this.anim.name = name;
+            this.anim.textures = ani.textures;
+            this.anim.scale.x = ani.flipX ? -1 : 1;
+            // this.anim.position.x = ani.flipX ? this.anim.width : 0;
+            this.anim.gotoAndPlay(0);
+
+        }
     }
 }
 Engine.Troll = Troll;
@@ -905,6 +990,7 @@ Engine.Troll = Troll;
 class Medusa extends Character {
     constructor() {
         super();
+        this.removeChild(this.container);
 
         this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster02_active.png"));
 
@@ -915,6 +1001,28 @@ class Medusa extends Character {
         this.ciriticalRate = 0.4;
         this.ciriticalBalance = 1.5;
         this.defense = 0.3;
+        
+        // Animation
+        this.animations.idle_sw = { textures: loadAniTexture("monster1_idle_sw", 1), flipX: false };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.attack_sw = { textures: loadAniTexture("monster1-atk_sw", 4), flipX: false };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.y = -48; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
     }
 }
 Engine.Medusa = Medusa;
@@ -922,8 +1030,9 @@ Engine.Medusa = Medusa;
 class Wolf extends Character {
     constructor() {
         super();
+        this.removeChild(this.container);
 
-        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster03_active.png"));
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster02_active.png"));
 
         this.hp = 150;
         this.maxHp = 150;
@@ -932,6 +1041,28 @@ class Wolf extends Character {
         this.ciriticalRate = 0.4;
         this.ciriticalBalance = 1.5;
         this.defense = 0.3;
+        
+        // Animation
+        this.animations.idle_sw = { textures: loadAniTexture("monster1_idle_sw", 1), flipX: false };
+        this.animations.idle_se = { textures: this.animations.idle_sw.textures, flipX: true };
+
+        this.animations.attack_sw = { textures: loadAniTexture("monster1-atk_sw", 4), flipX: false };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        const anim = new PIXI.extras.AnimatedSprite(this.animations.idle_sw.textures);
+        anim.animationSpeed = 0.1;
+        anim.play();
+        anim.position.y = -48; // 하드코딩
+        this.anim = anim;
+        this.container.addChild(anim);
+
+        // 하드코딩
+        this.hpHolder.position.y = -this.anim.height - 8;
+        this.hpHolder.position.x = 16 - this.hpHolder.width / 2;
+        this.hpBar.position.y = -this.anim.height - 7;
+        this.hpBar.position.x = 16 - this.hpHolder.width / 2 + 1;
+        
+        this.addChild(this.container);
     }
 }
 Engine.Wolf = Wolf;
