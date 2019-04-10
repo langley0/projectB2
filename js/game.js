@@ -44,6 +44,16 @@ class Game {
         this.exploreMode = new Explore(this);
         this.currentMode = null;
         this.nextStageMode = null;
+
+        // hitEffect or 화면 효과용 스크린을 설치. (다른곳으로 빼야할듯하다..)
+        const whiteScreen = new PIXI.Sprite(PIXI.Texture.WHITE);
+        whiteScreen.width = width + 128;
+        whiteScreen.height = height + 128;
+        whiteScreen.position.x = -64;
+        whiteScreen.position.y = -64;
+        whiteScreen.alpha = 0;
+        pixi.stage.addChild(whiteScreen);
+        this.whiteScreen = whiteScreen;
     }
 
     preload(resources, onComplete) {
@@ -79,6 +89,34 @@ class Game {
             // 플레이어가 속한 스테이지 들어간다
             this.enterStage(playerInfo.stagePath, "explore");
         });
+        this.loadEffect(() => { });
+    }
+
+    loadEffect(onLoadComplete) {
+        const resources = [
+            "assets/slash_1.json"
+        ];
+
+        const loader = new PIXI.loaders.Loader();
+        for (const res of resources) {
+            if (Array.isArray(res)) {
+                if (!PIXI.utils.TextureCache[res[0]] && !PIXI.utils.BaseTextureCache[res[0]]) {
+                    loader.add(...res);
+                }
+            } else {
+                const texturePackName = res + '_image';
+                if (!PIXI.utils.TextureCache[res] && !PIXI.utils.BaseTextureCache[res] &&
+                    !PIXI.utils.TextureCache[texturePackName] && !PIXI.utils.BaseTextureCache[texturePackName]) {
+                    loader.add(res);
+                }
+            }
+        }
+
+        loader.load((_, resources) => {
+            if (onLoadComplete) {
+                onLoadComplete();
+            }
+        });
     }
 
     loadCharacter(onLoadComplete) {
@@ -90,6 +128,10 @@ class Game {
             "assets/night/walk_down.json",
             "assets/night/walk_up.json",
             ["shadow.png", "assets/shadow.png"],
+            ["pbar.png", "assets/pbar.png"],
+            ["pbar_r.png", "assets/pbar_r.png"],
+            ["pbar_g.png", "assets/pbar_g.png"],
+            ["pbar_o.png", "assets/pbar_o.png"]
         ];
 
         const loader = new PIXI.loaders.Loader();

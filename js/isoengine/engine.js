@@ -161,7 +161,7 @@ class IsoMap extends PIXI.Container {
         this.currentScale = 1.0;
         this.currentZoom = 0;
     
-        this.posFrame = { x : 0, y : 0, w : 800, h : 600 };
+        this.posFrame = { x : 0, y : 0, w : 980, h : 500 };
         this.externalCenter = {
             x : this.posFrame.w >> 1,
             y : this.posFrame.h >> 1
@@ -172,6 +172,31 @@ class IsoMap extends PIXI.Container {
 
         this.currentFocusLocation = { x: this.mapWidth >> 1, y: this.mapHeight >> 1 };
 		this.centralizeToPoint(this.externalCenter.x, this.externalCenter.y, true);
+    }
+
+    // Obj를 흔들어주는 function 이런건 유틸쪽으로 빼야할까..?..
+    // set Timeout 을 사용하는게 맞는가..? MovieClip Timeline이 있는데
+    vibrateObj(obj, strength, callback) {
+        var size = strength ? strength : 4;
+        var x = obj.position.x;
+        var y = obj.position.y;
+
+        var vibrate = () => {
+            setTimeout(() => {
+                obj.position.x = x;
+                obj.position.y = y;
+                if (size < -1 || size > 1) {
+                    obj.position.x += size;
+                    obj.position.y += size;
+                    size = size / -4 * 3;
+                    vibrate();
+                } else {
+                    callback ? callback() : null;
+                }
+            }, 30);
+        };
+
+        vibrate();
     }
 
     zoomTo(scale, instantZoom) {
@@ -520,6 +545,25 @@ class IsoMap extends PIXI.Container {
         }	
     }
 
+    focusBattleCenter() {
+        if (true) {
+            const px = this.externalCenter.x - this.mapVisualWidthReal / 2 * this.currentScale;
+            const py = this.externalCenter.y - this.mapVisualHeightReal / 20 * this.currentScale;
+
+            this.moveEngine.addTween(this.mapContainer.position, 0.5, { x: px, y: py }, 0, "easeInOut", true);
+        }
+    }
+
+    focusBattleObject(obj) {
+        this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
+        const px = this.externalCenter.x - obj.position.x * this.currentScale;
+        const py = this.externalCenter.y - obj.position.y * this.currentScale + 20;
+
+        setTimeout(() => {
+            this.moveEngine.addTween(this.mapContainer.position, 0.5, { x: px, y: py }, 0, "easeInOut", true);
+        }, 500)
+    }
+
     checkForFollowCharacter(obj, instantFollow) {
         if (true) {
             this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
@@ -623,6 +667,8 @@ class Character extends PIXI.Container {
 
         this.gridX = 0;
         this.gridY = 0;
+
+        this.status = 'idle';
         this.container = new PIXI.Container();
 
 
@@ -645,6 +691,18 @@ class Character extends PIXI.Container {
         this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
         this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
 
+        // Stat Character 상속받는 Knight 클래스로 빼야할 것들..
+        // balance가 1에 가까울수록 좋은것. (확정적 데미지)
+        // (balance)% + Math.random() * (1 - balance)%
+        this.hp = 100;
+        this.maxHp = 100;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        // critical로 인한 추가 데미지 계수.
+        this.ciriticalBalance = 1.5;
+        // 물리 방어계수 %
+        this.defense = 0.3;
 
         // 그림자를 추가한다
         const shadow = new PIXI.Sprite(PIXI.Texture.fromFrame("shadow.png"));
@@ -658,9 +716,87 @@ class Character extends PIXI.Container {
         this.anim = anim;
         this.container.addChild(anim);
 
+        const hpHolder = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar.png"));
+        const hpBar = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar_r.png"));
+
+        // 하드코딩
+        hpHolder.position.y = -this.anim.height - 8;
+        hpHolder.position.x = 16 - hpHolder.width / 2;
+
+        hpBar.position.y = -this.anim.height - 7;
+        hpBar.position.x = 16 - hpHolder.width / 2 + 1;
+        this.hpHolder = hpHolder;
+        this.hpBar = hpBar;
+        this.hpHolder.alpha = 0;
+        this.hpBar.alpha = 0;
+
+        this.container.addChild(hpHolder);
+        this.container.addChild(hpBar);
+
         this.currentDir = DIRECTIONS.SW;
 
         this.addChild(this.container);
+    }
+
+    setUiVisible(game, flag) {
+        const hpWidth = this.hp / this.maxHp * 34;
+        this.hpBar.width = hpWidth;
+
+        if (flag) {
+            game.tweens.addTween(this.hpHolder, 0.5, { alpha: 1 }, 0, "easeInOut", true);
+            game.tweens.addTween(this.hpBar, 0.5, { alpha: 1 }, 0, "easeInOut", true);
+        } else {
+            game.tweens.addTween(this.hpHolder, 0.5, { alpha: 0 }, 0, "linear", true);
+            game.tweens.addTween(this.hpBar, 0.5, { alpha: 0 }, 0, "linear", true);
+        }
+    }
+
+    onDamage(game, damage, options) {
+        this.hp -= damage;
+        let hpWidth = (this.hp < 0 ? 0 : this.hp) / this.maxHp * 34;
+        if (options.critical) {
+            game.whiteScreen.alpha = 0.2;
+            game.tweens.addTween(game.whiteScreen, 0.1, { alpha: 0 }, 0, "easeInOut", true);
+            game.stage.vibrateObj(game.stage.mapContainer, 6, null);
+        }
+        // Effect 작성해보자.
+        // 여기 메모리 낭비.. 계속 addChild로 animated sprite 박고 있어서 문제가 될 듯하다. 어떻게 해야할까..
+        // 심지어 이펙트 쪽으로 빼야할듯..
+        // 이것을 빼면서.. Character 내부에 뜨는 Damage 도 다른 Container에 생성해야할듯싶다..
+        const slash = { textures: loadAniTexture("slash_", 8), flipX: false };
+        const anim = new PIXI.extras.AnimatedSprite(slash.textures);
+        anim.animationSpeed = 0.5;
+        anim.loop = false;
+        anim.blendMode = PIXI.BLEND_MODES.ADD;
+        anim.play();
+        anim.position.y = -anim.height;
+        anim.position.x = -anim.width / 4;
+        this.container.addChild(anim);
+
+        // UI에서 데미지 받았을때 처리.
+        game.ui.battleUi.updateStatus(this);
+
+        game.tweens.addTween(this.hpBar, 0.5, { width: hpWidth }, 0, "easeInOut", true);
+        game.stage.vibrateObj(this.anim, 4, () => { this.checkDie(); });
+    }
+
+    checkDie() {
+        // tween으로 작성할것...
+        var func = () => {
+            setTimeout(() => {
+                if (this.container.alpha >= 0.1) {
+                    this.container.alpha -= 0.1;
+                    func();
+                } else {
+                    this.container.alpha = 0;
+                }
+            }, 20);
+        };
+
+        if (this.hp <= 0) {
+            this.status = 'die';
+            func();
+        }
     }
 
    
@@ -686,6 +822,119 @@ class Character extends PIXI.Container {
         }
     }    
 }
+
+// 얘네 다른곳으로 빼야할 듯 하다..
+class Knight extends Character {
+    constructor() {
+        super();
+        // 스프라이트 로드같은것 캐릭터마다 다를테고.. 초상화 같은것도 있을테고.. 음 
+
+        this.name = "Hector";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player1_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill02.png"));
+
+        this.hp = 300;
+        this.maxHp = 300;
+        this.damage = 50;
+        this.balance = 0.85;
+        this.ciriticalRate = 0.3;
+        this.ciriticalBalance = 1.7;
+        this.defense = 0.5;
+    }
+}
+Engine.Knight = Knight;
+
+class Wizard extends Character {
+    constructor() {
+        super();
+
+        this.name = "Elid";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player2_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch01_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch01_skill02.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 60;
+        this.balance = 0.7;
+        this.ciriticalRate = 0.2;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.4;
+    }
+}
+Engine.Wizard = Wizard;
+
+class Archer extends Character {
+    constructor() {
+        super();
+
+        this.name = "Miluda";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player3_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch02_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch02_skill02.png"));
+
+        this.hp = 100;
+        this.maxHp = 100;
+        this.damage = 80;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.5;
+        this.ciriticalBalance = 2;
+        this.defense = 0.3;
+    }
+}
+Engine.Archer = Archer;
+
+class Troll extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster01_active.png"));
+
+        this.hp = 300;
+        this.maxHp = 300;
+        this.damage = 30;
+        this.balance = 0.7;
+        this.ciriticalRate = 0.2;
+        this.ciriticalBalance = 1.2;
+        this.defense = 0.5;
+    }
+}
+Engine.Troll = Troll;
+
+class Medusa extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster02_active.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.3;
+    }
+}
+Engine.Medusa = Medusa;
+
+class Wolf extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster03_active.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.3;
+    }
+}
+Engine.Wolf = Wolf;
 
 //The `hitTestRectangle` function
 function hitTestRectangle(rect1, rect2) {
