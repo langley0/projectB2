@@ -370,6 +370,179 @@ class CombineUI extends PIXI.Container {
     }
 }
 
+class BattleUI extends PIXI.Container {
+    constructor(ui) {
+        super();
+        this.battleUi = {
+            playersPortraits: [],
+            enemiesPortraits: []
+        };
+
+        this.players = [];
+        this.enemies = [];
+
+        this.ui = ui;
+
+        this.playerUi = new PIXI.Container();
+        this.enemyUi = new PIXI.Container();
+
+        this.playerUi.visible = false;
+        this.enemyUi.visible = false;
+
+        this.addChild(this.playerUi);
+        this.addChild(this.enemyUi);
+    }
+
+    setBattleUi(players, enemies) {
+        this.battleUi = {
+            playersPortraits: [],
+            enemiesPortraits: []
+        };
+
+        this.removeChild(this.playerUi);
+        this.removeChild(this.enemyUi);
+
+        this.playerUi = new PIXI.Container();
+        this.enemyUi = new PIXI.Container();
+
+        this.makePlayerUi(players);
+        this.makeEnemiesUi(enemies);
+
+        this.playerUi.visible = false;
+        this.enemyUi.visible = false;
+
+        this.addChild(this.playerUi);
+        this.addChild(this.enemyUi);
+    }
+
+    makePlayerUi(players) {
+        this.players = players;
+
+        players.forEach((player, i) => {
+            // player정보 읽어서 뭔가 초상화 이런거 가져오겠지..
+            const newBattleUi = {
+                portrait: player.portrait,
+                skillA: player.skillAIcon,
+                skillB: player.skillBIcon
+            }
+
+            newBattleUi.portrait.x = 25 + i * 94;
+            newBattleUi.portrait.y = this.ui.screenHeight - 57 - newBattleUi.portrait.height;
+            newBattleUi.portrait.interactive = true;
+            this.playerUi.addChild(newBattleUi.portrait);
+
+            newBattleUi.skillA.x = newBattleUi.portrait.x + newBattleUi.portrait.width / 2 - newBattleUi.skillA.width - 3;
+            newBattleUi.skillA.y = newBattleUi.portrait.y + newBattleUi.portrait.height;
+            newBattleUi.skillA.interactive = true;
+            this.playerUi.addChild(newBattleUi.skillA);
+
+            newBattleUi.skillB.x = newBattleUi.portrait.x + newBattleUi.portrait.width / 2 + 3;
+            newBattleUi.skillB.y = newBattleUi.portrait.y + newBattleUi.portrait.height;
+            newBattleUi.skillB.interactive = true;
+            this.playerUi.addChild(newBattleUi.skillB);
+            
+            const style = new PIXI.TextStyle();
+            style.dropShadow = true;
+            style.dropShadowDistance = 1;
+            style.fontSize = 15;
+            style.fill = "#ffffff";
+            
+            const text = new PIXI.Text(player.name, style);
+            text.position.x = Math.round(newBattleUi.portrait.x + (newBattleUi.portrait.width/2) - text.width/2);
+            text.position.y = newBattleUi.portrait.y - text.height;
+            this.playerUi.addChild(text);
+
+            this.battleUi.playersPortraits.push(newBattleUi);
+        });
+    }
+
+    makeEnemiesUi(enemies) {
+        this.enemies = enemies;
+        enemies.forEach((enemy, i) => {
+            const newBattleUi = {
+                portrait: enemy.portrait
+            }
+
+            newBattleUi.portrait.x = 970 - ((enemies.length - i) * 94);
+            newBattleUi.portrait.y = 10;
+            newBattleUi.portrait.interactive = true;
+            this.enemyUi.addChild(newBattleUi.portrait);
+            
+            const style = new PIXI.TextStyle();
+            style.dropShadow = true;
+            style.dropShadowDistance = 1;
+            style.fontSize = 15;
+            style.fill = "#ffffff";
+            
+            // 우선 레벨 하드코딩..
+            const text = new PIXI.Text('Lv.1', style);
+            text.position.x = Math.round(newBattleUi.portrait.x + (newBattleUi.portrait.width/2) - text.width/2);
+            text.position.y = newBattleUi.portrait.y + newBattleUi.portrait.height + 3;
+            this.enemyUi.addChild(text);
+
+            this.battleUi.enemiesPortraits.push(newBattleUi);
+        });
+    }
+
+    showUi() {
+        this.playerUi.visible = true;
+        this.enemyUi.visible = true;
+    }
+
+    hideUi() {
+        this.playerUi.visible = false;
+        this.enemyUi.visible = false;
+    }
+
+    updateStatus(character) {
+        if (character.hp <= 0) {
+            const playerIndex = this.players.indexOf(character);
+            const enemyIndex = this.enemies.indexOf(character);
+
+            if (playerIndex >= 0) {
+                this.battleUi.playersPortraits[playerIndex].portrait.tint = 0xFF5555;
+            } else {
+                this.battleUi.enemiesPortraits[enemyIndex].portrait.tint = 0xFF5555;
+            }
+        }
+    }
+
+    disableInteractive() {
+        this.players.forEach((player, index) => {
+            this.battleUi.playersPortraits[index].skillA.interactive = false;
+            this.battleUi.playersPortraits[index].skillB.interactive = false;
+            this.battleUi.playersPortraits[index].skillA.removeAllListeners();
+            this.battleUi.playersPortraits[index].skillB.removeAllListeners();
+        });
+    }
+
+    getCommand(callback) {
+        this.players.forEach((player, index) => {
+            // 이 조건문 마음에 들지 않음..
+            if (player.hp > 0) {
+                this.battleUi.playersPortraits[index].portrait.tint = 0xBBBBBB;
+            }
+            if (player.status === 'idle') {
+                this.battleUi.playersPortraits[index].portrait.tint = 0xFFFFFF;
+                this.battleUi.playersPortraits[index].skillA.interactive = true;
+                this.battleUi.playersPortraits[index].skillB.interactive = true;
+
+                this.battleUi.playersPortraits[index].skillA.on('mouseup', (event) => {
+                    this.battleUi.playersPortraits[index].portrait.tint = 0xBBBBBB;
+                    callback(player, 'selectA');
+                    this.disableInteractive();
+                });
+
+                this.battleUi.playersPortraits[index].skillB.on('mouseup', (event) => {
+                    this.battleUi.playersPortraits[index].portrait.tint = 0xBBBBBB;
+                    callback(player, 'selectB');
+                    this.disableInteractive();
+                });
+            }
+        });
+    }
+}
+
 class UI extends PIXI.Container {
     constructor(game) {
         super();
@@ -398,6 +571,9 @@ class UI extends PIXI.Container {
         this.combine = new CombineUI(this);
         this.addChild(this.combine);
         this.combine.visible = false;
+        
+        this.battleUi = new BattleUI(this);
+        this.addChild(this.battleUi);
     }
     
     showDialog(text, closeCallback) {
