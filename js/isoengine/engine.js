@@ -836,7 +836,7 @@ class Knight extends Character {
 
         this.hp = 300;
         this.maxHp = 300;
-        this.damage = 50;
+        this.damage = 500;
         this.balance = 0.85;
         this.ciriticalRate = 0.3;
         this.ciriticalBalance = 1.7;
@@ -856,7 +856,7 @@ class Wizard extends Character {
 
         this.hp = 150;
         this.maxHp = 150;
-        this.damage = 60;
+        this.damage = 500;
         this.balance = 0.7;
         this.ciriticalRate = 0.2;
         this.ciriticalBalance = 1.5;
@@ -876,7 +876,7 @@ class Archer extends Character {
 
         this.hp = 100;
         this.maxHp = 100;
-        this.damage = 80;
+        this.damage = 500;
         this.balance = 0.8;
         this.ciriticalRate = 0.5;
         this.ciriticalBalance = 2;
@@ -1082,21 +1082,31 @@ class Chest extends Tile {
                 itemType = 2;
             }
             
-            game.ui.showItemAcquire(itemType, () => {
-                // TODO:  모달 클로즈 이벤트를 만들어야 한다
-                // 트리거를 만들어야 한다!!
-
-                if (game.player.inventory.getItemByType(1) && 
-                    game.player.inventory.getItemByType(2)) {
-
-                    game.ui.showChatBallon(game.player, "열쇠조각은 모두 모았어!!\n아까 모루를 본 것 같은데 \n그쪽으로 가보자", 4);
-                } else {
-                    game.ui.showChatBallon(game.player, "열쇠조각이다! 나머지 조각도 어딘가 있을거야", 4);
-                }
-            });
-
-            
+            // 두번째상자에서 몬스터가 나오게 한다
+            if (itemType === 2) {
+                game.battleMode.callback = () => {
+                    this.onItemAdded(game, itemType);
+                };
+                game.enterStage('assets/mapdata/map2.json', "battle");
+            } else {
+                this.onItemAdded(game, itemType);
+            }
         }
+    }
+
+    onItemAdded(game, itemType) {
+        game.ui.showItemAcquire(itemType, () => {
+            // TODO:  모달 클로즈 이벤트를 만들어야 한다
+            // 트리거를 만들어야 한다!!
+
+            if (game.player.inventory.getItemByType(1) && 
+                game.player.inventory.getItemByType(2)) {
+
+                game.ui.showChatBallon(game.player, "열쇠조각은 모두 모았어!!\n아까 모루를 본 것 같은데 \n그쪽으로 가보자", 4);
+            } else {
+                game.ui.showChatBallon(game.player, "열쇠조각이다! 나머지 조각도 어딘가 있을거야", 4);
+            }
+        });
     }
 }
 

@@ -343,9 +343,15 @@ class Game {
                 this.gamelayer.removeChildren();
 
                 // 전투 스테이지 한정코드
-                // 전투로 갈때는 스테이지를 나가지 않는다
+                if (this.currentMode === this.battleMode)  {
+                    // 하!드!코!딩!  전투에서 복귀하는중이다
+                    if (this.battleMode.callback) {
+                        this.battleMode.callback();
+                    }
+                    // ?????????? 아몰랑... 어떻게 victory 를 빼야할지 모르겠다
+                    this.ui.battleUi.removeChildren();
+                }
 
-                
                 // 화면 암전이 끝나면 로딩을 시작한다
                 this.loadStage(stagePath, this.onStageLoadCompleted.bind(this));
             });

@@ -73,36 +73,16 @@ class Battle {
         // Intro Cutscene (하드코딩 수정할 것..) 캐릭터별 대사가 있을것이고.. 캐릭터 배열이 있을테니 추후 하드코딩 수정할것
         var intro = () => {
             if (flow == 0) {
-                this.game.stage.focusBattleObject(this.enemies[0]);
-                setTimeout(() => {
-                    this.game.ui.showChatBallon(this.enemies[0], "크르르..");
-                }, 550);
-            } else if (flow == 1) {
                 this.game.stage.focusBattleObject(this.enemies[1]);
                 setTimeout(() => {
                     this.game.ui.showChatBallon(this.enemies[1], "인간 냄새가 나는군..");
                 }, 550);
-            } else if (flow == 2) {
-                this.game.stage.focusBattleObject(this.enemies[2]);
-                setTimeout(() => {
-                    this.game.ui.showChatBallon(this.enemies[2], "죽일꺼야..");
-                }, 550);
-            } else if (flow == 3) {
-                this.game.stage.focusBattleObject(this.players[0]);
-                setTimeout(() => {
-                    this.game.ui.showChatBallon(this.players[0], "별것도 아닌게 까불어!");
-                }, 550);
-            } else if (flow == 4) {
-                this.game.stage.focusBattleObject(this.players[1]);
-                setTimeout(() => {
-                    this.game.ui.showChatBallon(this.players[1], "내 솜씨를 제대로 보여줄 시간이군!");
-                }, 550);
-            } else if (flow == 5) {
+            } else if (flow == 1) {
                 this.game.stage.focusBattleObject(this.players[2]);
                 setTimeout(() => {
                     this.game.ui.showChatBallon(this.players[2], "각오하라고!!");
                 }, 550);
-            } else if (flow == 6) {
+            } else if (flow == 2) {
                 this.cutscene = false;
                 this.game.ui.hideTheaterScreen(1);
                 this.game.stage.focusBattleCenter();
@@ -117,7 +97,7 @@ class Battle {
             }
 
             setTimeout(() => {
-                if (flow === 6) {
+                if (flow === 2) {
                     this.turnCount = 0;
                     this.nextTurn();
                 } else {
@@ -168,7 +148,7 @@ class Battle {
             setTimeout(() => {
                 this.turnCount = 1;
                 this.nextTurn();
-            }, 3000);
+            }, 1000);
         } else if (this.turnCount % 4 === 1) {
             let index = -1;
             this.players.forEach((player, i) => {
@@ -196,7 +176,7 @@ class Battle {
             setTimeout(() => {
                 this.turnCount = 3;
                 this.nextTurn();
-            }, 3000);
+            }, 1000);
         } else {
             let index = -1;
             this.enemies.forEach((enemy, i) => {
@@ -221,13 +201,13 @@ class Battle {
         const victory = new PIXI.Sprite(PIXI.Texture.fromFrame("ending_victory.png"));
         victory.alpha = 0;
         this.game.ui.battleUi.addChild(victory);
-        this.game.tweens.addTween(victory, 1, { alpha: 1 }, 1, "easeInOut", true);
-
-        setTimeout(()=> {
-            this.game.enterStage('assets/mapdata/map.json', "explore");
-            this.callback?this.callback():null;
-            this.game.tweens.addTween(victory, 1, { alpha: 0 }, 0, "easeInOut", true);
-        },3000);
+        this.game.tweens.addTween(victory, 1, { alpha: 1 }, 1, "easeInOut", true, ()=> {
+            victory.interactive = true;
+            victory.mouseup = () => {
+                // 스테이지 변경을 한다 그런데... 페이드 아웃되었을때에 
+                this.game.enterStage('assets/mapdata/map.json', "explore");
+            };
+        });
     }
 
     // 이제 Character를 안받아도 되겠으나.. 지금 player턴인지.. enemies턴인지 알기위해 일단 둔다..
