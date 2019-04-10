@@ -115,6 +115,26 @@ class Game {
     }
 
     loadStage(stagePath, onLoadComplete) {
+        // =======================================================
+        // 전투 관련 하드 코딩이다. 나중에 스테이지 관련 핸들링을 변경하다
+        // 전투로 넘어갈때는 스테이지 정보를 백업한다
+        if (this.nextStageMode === "battle") {
+            // 배틀로 갈때는 스테이지를 기록한다
+            this.exploreMode.stage = this.stage;
+            this.exploreMode.backupX = this.player.gridX;
+            this.exploreMode.backupY = this.player.gridY;
+
+        } else if (this.currentMode === this.battleMode) {
+            // 전투에서 되돌아올때는 백업을 사용한다
+            const backup = this.exploreMode.stage;
+            this.exploreMode.fromBattle = true;
+            this.exploreMode.stage = undefined;
+            onLoadComplete(backup);
+            return;
+        }
+        // =======================================================
+
+
         // 필요한 리소스를 로딩한다
         const resources = [
             ["tiles.json", "assets/mapdata/tiles.json"],
@@ -264,9 +284,6 @@ class Game {
             // 렌더링 데이터를 빌드한다
             stage.build();
 
-            // 백그라운드 이미지를 추가한다
-            this.background.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("background.png")));
-
             // 로딩 완료 콜백
             if (onLoadComplete) {
                 onLoadComplete(stage);
@@ -282,7 +299,10 @@ class Game {
             this.tweens.addTween(this.blackScreen, 1, { alpha: 1 }, 0, "easeIn", true, () => {
                 this.background.removeChildren();
                 this.gamelayer.removeChildren();
-                
+
+                // 전투 스테이지 한정코드
+                // 전투로 갈때는 스테이지를 나가지 않는다
+
                 
                 // 화면 암전이 끝나면 로딩을 시작한다
                 this.loadStage(stagePath, this.onStageLoadCompleted.bind(this));
@@ -296,6 +316,9 @@ class Game {
     onStageLoadCompleted(stage) {
         // 스테이지의 줌레벨을 결정한다
         stage.zoomTo(2, true);
+
+        // 백그라운드 이미지를 추가한다
+        this.background.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("background.png")));
 
         this.stage = stage;
         this.gamelayer.addChild(stage);
@@ -311,7 +334,7 @@ class Game {
         this.currentMode.prepare();
 
         // 다시 암전을 밝힌다
-        this.tweens.addTween(this.blur, 1, { blur: 0 }, 0, "easeOut", true );
+        //this.tweens.addTween(this.blur, 1, { blur: 0 }, 0, "easeOut", true );
         this.tweens.addTween(this.blackScreen, 1, { alpha: 0 }, 0, "easeOut", true, () => {
             this.currentMode.start();
         });

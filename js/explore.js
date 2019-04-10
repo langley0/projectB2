@@ -6,52 +6,65 @@ class Explore {
     prepare() {
         // 플레이어를 맵에 추가한다
         // 맵에 스타팅 포인트가 있어야 하는데? 
-        
-        const spawnPoint = { x: 3, y: 1 };
 
-        const stage = this.game.stage
-        const player = this.game.player;
-        stage.addCharacter(player, spawnPoint.x, spawnPoint.y);
-        stage.checkForFollowCharacter(player, true);
+        if (this.fromBattle) {
+            // 전투에서 되돌아 올때는 따로 연출없이 바로 온다
+            const stage = this.game.stage
+            const player = this.game.player;
+            stage.addCharacter(player, this.backupX, this.backupY);
+            stage.checkForFollowCharacter(player, true);
+            
+        } else {
+            const spawnPoint = { x: 3, y: 1 };
 
-        // 캐릭터 방향을 돌린다
-        this.game.player.changeVisualToDirection(DIRECTIONS.SE);
+            const stage = this.game.stage
+            const player = this.game.player;
+            stage.addCharacter(player, spawnPoint.x, spawnPoint.y);
+            stage.checkForFollowCharacter(player, true);
 
-        // 컷신준비를 한다
-        this.cutscene = true;
-        this.game.ui.showTheaterScreen(0);
-        this.game.stage.showPathHighlight = false;
+            // 캐릭터 방향을 돌린다
+            this.game.player.changeVisualToDirection(DIRECTIONS.SE);
 
-        this.game.stage.onTouchObject = this.onTouchObject.bind(this);
-        this.game.stage.onTilePassing = this.onTilePassing.bind(this);
+            // 컷신준비를 한다
+            this.cutscene = true;
+            this.game.ui.showTheaterScreen(0);
+            this.game.stage.showPathHighlight = false;
 
-        // 게이트를 열어놓는다
-        const gate = this.game.stage.getObjectAt(3, 1);
-        gate.open();
+            this.game.stage.onTouchObject = this.onTouchObject.bind(this);
+            this.game.stage.onTilePassing = this.onTilePassing.bind(this);
+
+            // 게이트를 열어놓는다
+            const gate = this.game.stage.getObjectAt(3, 1);
+            gate.open();
+        }
     }
 
     start() {
         this.game.stage.onTileSelected = this.onTileSelected.bind(this);
-        
-        //=======================
-        // 컷신 하드코딩
-        // 스테이지 이름을 화면에 출력한다
-        this.game.ui.showStageTitle("어둠의 성탑 99층");
-        // 플레이어를 적당한 곳으로 이동시킨다
-        this.game.stage.moveCharacter(this.game.player, 4,4);
-        setTimeout(() => {
-            // 게이트문을 찾아서 닫는다.
-            const gate = this.game.stage.getObjectAt(3, 1);
-            gate.close(this.game.tweens);
-        }, 2000);
 
-        setTimeout(() => {
-            this.game.ui.showChatBallon(this.game.player, "큰일이다 문이 닫혔다!\n어떻게 하면 나갈 수 있을까 ...", 4);
-            // 컷신을 끝낸다
-            this.cutscene = false;
-            this.game.ui.hideTheaterScreen(1);
-            this.game.stage.showPathHighlight = true;
-        }, 3000);
+        if (this.fromBattle) {
+            // 바로 컷신을 끝낸다
+        } else {
+            //=======================
+            // 컷신 하드코딩
+            // 스테이지 이름을 화면에 출력한다
+            this.game.ui.showStageTitle("어둠의 성탑 99층");
+            // 플레이어를 적당한 곳으로 이동시킨다
+            this.game.stage.moveCharacter(this.game.player, 4,4);
+            setTimeout(() => {
+                // 게이트문을 찾아서 닫는다.
+                const gate = this.game.stage.getObjectAt(3, 1);
+                gate.close(this.game.tweens);
+            }, 2000);
+
+            setTimeout(() => {
+                this.game.ui.showChatBallon(this.game.player, "큰일이다 문이 닫혔다!\n어떻게 하면 나갈 수 있을까 ...", 4);
+                // 컷신을 끝낸다
+                this.cutscene = false;
+                this.game.ui.hideTheaterScreen(1);
+                this.game.stage.showPathHighlight = true;
+            }, 3000);
+        }
     }
 
     onGameClick(event) {

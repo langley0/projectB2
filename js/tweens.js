@@ -72,6 +72,7 @@ class Tweens {
                             targetRemoved = true;
                         }
                     } else {
+                        console.log(o, t);
                         throw new Error("No tween defined for this object");
                     }
                 } else {
@@ -109,12 +110,13 @@ class Tweens {
                         }
                         
                         if (t.currentFrame - t.delayFrame >= t.totalFrames) {
-                            if (t.onComplete) { t.onComplete(); }
-                            if (this.removeTween(o, t)) 
-                            {
+                            const onComplete = t.onComplete;
+                            if (this.removeTween(o, t)) {
                                 i--; len--;
                             }
                             j--;
+
+                            if (onComplete) { onComplete(); }
                         }
                     }
                 }

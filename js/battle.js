@@ -9,11 +9,12 @@ class Battle {
     }
 
     prepare() {
-        this.engine = game.stage;
-        this.player = game.player;
+        this.engine = this.game.stage;
+        this.player = this.game.player;
 
         // 적절한 위치에 배치를 한다
-        this.engine.moveCharacter(this.player, 6, 6);
+        this.engine.addCharacter(this.player, 6, 6);
+        this.engine.checkForFollowCharacter(this.player, true);
 
         // 적을 추가한다
         const enemy = new Engine.Character();
