@@ -121,12 +121,29 @@ class Game {
 
     loadCharacter(onLoadComplete) {
         const resources = [
-            "assets/night/atk_left.json",
-            "assets/night/atk_up.json",
-            "assets/night/idle.json",
-            "assets/night/idle_up.json",
-            "assets/night/walk_down.json",
-            "assets/night/walk_up.json",
+            "assets/night/atk_sw.json",
+            "assets/night/atk_nw.json",
+            "assets/night/idle_sw.json",
+            "assets/night/idle_nw.json",
+            "assets/night/walk_sw.json",
+            "assets/night/walk_nw.json",
+            
+            "assets/elid/elid_atk_nw.json",
+            "assets/elid/elid_atk_sw.json",
+            "assets/elid/elid_idle_nw.json",
+            "assets/elid/elid_idle_sw.json",
+
+            "assets/miluda/miluda_atk_sw.json",
+            "assets/miluda/miluda_atk_nw.json",
+            "assets/miluda/miluda_idle_sw.json",
+            "assets/miluda/miluda_idle_nw.json",
+
+            "assets/titan/monster2-atk_sw.json",
+            "assets/titan/monster2-idle_sw.json",
+
+            "assets/medusa/monster1-atk_sw.json",
+            "assets/medusa/monster1_idle_sw.json",
+            
             ["shadow.png", "assets/shadow.png"],
             ["pbar.png", "assets/pbar.png"],
             ["pbar_r.png", "assets/pbar_r.png"],
